@@ -18,6 +18,8 @@ public class MarchingSquares {
 	final boolean[][] bs;
 	final int w, h;
 	
+	Integer[][] colors = null;
+	
 	public MarchingSquares(boolean[][] bs) {
 		this.bs = bs;
 		w = bs[0].length;
@@ -29,13 +31,22 @@ public class MarchingSquares {
 	static Color color = Color.white;
 	public static String save = "debug";
 	
-	public MarchingSquares create() {
-		if(debug == null) debug = new BufferedImage(w*scale*2, h*scale*2, BufferedImage.TYPE_INT_RGB);
+	public static boolean drawDebug = true;
+	
+	int rgb = 0;
+	
+	public MarchingSquares create(int rgb) {
+		this.rgb = rgb;
+//		if(debug == null && drawDebug) 
+		if(drawDebug)
+			debug = new BufferedImage(w*scale*2, h*scale*2, BufferedImage.TYPE_INT_RGB);
 		
 		grid = new Node[w*2][h*2];
 		
-		Graphics2D g = (Graphics2D) debug.getGraphics();
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		Graphics2D g = drawDebug ? (Graphics2D) debug.getGraphics() : null;
+		if(drawDebug) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		
+		
 //		g.scale(scale, scale);
 		for (int y = -1; y < h; y++) {
 			for (int x = -1; x < w; x++) {
@@ -84,12 +95,22 @@ public class MarchingSquares {
 				default -> {}
 				}
 
-//				g.drawString(key + "", x*scale*2, y*scale*2 + scale*2);
-				g.setColor(color);
+				if(drawDebug) {
+					g.setStroke(new BasicStroke(scale/5f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
+					g.setColor(Color.darkGray);
+					g.drawRect(x*2*scale, y*2*scale, 2*scale, 2*scale);
+				}
+				
+				if(drawDebug) {
+//					if(x > 0 && y > 0) g.setColor(bs[x][y] ? color : (colors[x][y] == null ? Color.darkGray : new Color(colors[x][y])));
+//					g.fillOval(x*2*scale - scale/4, y*2*scale - scale/4, scale/2, scale/2);
+
+//					g.setColor(color);
+				}
 				
 				if(vec1 == null && vec2 == null) continue;
 
-				g.setStroke(new BasicStroke(scale/2f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
+				if(drawDebug) g.setStroke(new BasicStroke(scale/2f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
 				if(vec1 != null) {
 //					g.drawLine((x*2+vec1.x1)*scale, (y*2+vec1.y1)*scale, (x*2+vec1.x2)*scale, (y*2+vec1.y2)*scale);
 					vec1.add(x*2, y*2);
@@ -109,9 +130,10 @@ public class MarchingSquares {
 //						}
 //					}
 				}
-
-				g.setColor(color);
-				g.setStroke(new BasicStroke(scale/2f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
+				if(drawDebug) {
+					g.setColor(color);
+					g.setStroke(new BasicStroke(scale/2f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
+				}
 				if(vec2 != null) {
 //					g.drawLine((x*2+vec2.x1)*scale, (y*2+vec2.y1)*scale, (x*2+vec2.x2)*scale, (y*2+vec2.y2)*scale);
 					vec2.add(x*2, y*2);
@@ -131,32 +153,45 @@ public class MarchingSquares {
 //						}
 //					}
 				}
-//				g.setColor(bs[x][y] ? Color.white : Color.darkGray);
-//				g.fillOval(x*2*scale - scale/10, y*2*scale - scale/10, scale/5, scale/5);
 			}
 		}
 		
 
-		g.setStroke(new BasicStroke(scale/2f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
-		for (int y = 0; y < h*2; y++) {
-			for (int x = 0; x < w*2; x++) {
-				if(grid[x][y] == null) continue;
-				Node n = grid[x][y];
-				for (Node l : n.links) {
-					g.drawLine(n.x*scale, n.y*scale, l.x*scale, l.y*scale);
+		if(drawDebug) {
+			g.setColor(Color.white);
+			g.setStroke(new BasicStroke(scale/2f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
+			for (int y = 0; y < h*2; y++) {
+				for (int x = 0; x < w*2; x++) {
+					if(grid[x][y] == null) continue;
+					Node n = grid[x][y];
+					for (Node l : n.links) {
+						g.drawLine(n.x*scale, n.y*scale, l.x*scale, l.y*scale);
+					}
 				}
+			}
+			
+			for (int y = 0; y < h*2; y++) {
+				for (int x = 0; x < w*2; x++) {
+
+					g.setColor(colors[x][y] == null ? Color.darkGray : new Color(colors[x][y]));
+
+					g.fillOval((x+2)*scale - scale/4, (y+2)*scale - scale/4, scale/2, scale/2);
+
+				}
+			}
+			g.setColor(color);
+			
+			g.dispose();
+			
+			try {
+				File file = new File("debug/" + save + "-" + color.getRGB()  + ".png");
+				file.mkdirs();
+				ImageIO.write(debug, "png", file);
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 		
-		g.dispose();
-		
-		try {
-			File file = new File("debug/" + save + ".png");
-			file.mkdirs();
-			ImageIO.write(debug, "png", file);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 		return this;
 	}
 	
@@ -165,18 +200,28 @@ public class MarchingSquares {
 		svg.append(
 				"""
 				<g fill="@" stroke-width=".1" stroke="#333" stroke-linecap="round" stroke-linejoin="round">
-				""".replaceFirst("@", "rgba(" + color.getRed() + " " + color.getGreen() + " " + color.getBlue() + ")")); //  / 90%
+				""".replaceFirst("@", "rgba(" + color.getRed() + " " + color.getGreen() + " " + color.getBlue() + "/ 90%)")); //  / 90%
 		
 		searchIndex = 0;
 		
 		while (true) {
 			
-			ArrayList<Node> path = nextPath();
-			if(path == null) break;
-			path = simplify(path);
+			ArrayList<Node> nodes = nextPath();
+			if(nodes == null) break;
+			
+			ArrayList<Vec2> vpath = new ArrayList<Vec2>();
+			for (Node n : nodes) {
+				vpath.add(new Vec2(n.x, n.y));
+			}
+			
+//			path = simplify(path);
+//			vpath = sharpen(vpath);
+			vpath = sharpen(vpath);
+//			vpath = sharpen(vpath);
+			
 			svg.append("\n\t<path d=\"");
-			for (int i = 0; i < path.size(); i++) {
-				Node n = path.get(i);
+			for (int i = 0; i < vpath.size(); i++) {
+				Vec2 n = vpath.get(i);
 				svg.append(i == 0 ? 'M' : 'L');
 				svg.append(n.x);
 				svg.append(',');
@@ -189,6 +234,74 @@ public class MarchingSquares {
 
 		svg.append("\n</g>\n");
 		return svg.toString();
+	}
+	
+	private ArrayList<Vec2> sharpen(ArrayList<Vec2> path) {
+		int limit = 10;
+		while (true) {
+			boolean needReturnd = false;
+			ArrayList<Vec2> sharpen = new ArrayList<Vec2>();
+			for (int i = 0; i < path.size(); i++) {
+				Vec2 c1 = element(path, i);
+				Vec2 c2 = element(path, i+1);
+
+				int cdx = c1.x-c2.x;
+				int cdy = c1.y-c2.y;
+
+				sharpen.add(new Vec2(c1.x, c1.y));
+
+				int ca = cdx*cdy;
+
+				Vec2 p = element(path, i-1);
+				Vec2 n = element(path, i+2);
+
+				int pdx = c1.x-p.x;
+				int pdy = c1.y-p.y;
+
+				int ndx = n.x-c2.x;
+				int ndy = n.y-c2.y;
+
+				int pa = pdx*pdy;
+				int na = ndx*ndy;
+
+				int x1 = c1.x + pdx;
+				int y1 = c1.y + pdy;
+
+				int x2 = c2.x - ndx;
+				int y2 = c2.y - ndy;
+
+				if(x1 == x2 && y1 == y2) {
+					if(colors[x1][y1] == null) { //x1%2 == 1 && y1%2 == 1) {
+						sharpen.add(new Vec2(x1, y1));
+						needReturnd = true;
+					}
+					continue;
+				}
+
+				if(pa == na) continue;
+				if(pa == ca) continue;
+				if(na == ca) continue;
+
+//				if((x1%2 == 1 && y1%2 == 1) || (x2%2 == 1 && y2%2 == 1)) {
+				if(colors[x1][y1] == null) sharpen.add(new Vec2(x1, y1));
+				if(colors[x2][y2] == null) sharpen.add(new Vec2(x2, y2));
+//				}
+				
+//				if(x2%2 == 1 && y2%2 == 1) {
+//				}
+				needReturnd = true;
+			}
+			path = sharpen;
+			if(!needReturnd) break;
+			limit--;
+			if(limit < 0) break;
+		}
+		return path;
+	}
+	
+	private <T> T element(ArrayList<T> array, int index) {
+		if(index >= 0) return array.get(index%array.size());
+		return array.get((index%array.size()+array.size())%array.size());
 	}
 	
 	private ArrayList<Node> simplify(ArrayList<Node> path) {
@@ -270,9 +383,12 @@ public class MarchingSquares {
 	private Node node(int x, int y) {
 		if(grid[x][y] == null) {
 			grid[x][y] = new Node(x, y);
+//			colors[x][y] = rgb;
 		}
 		return grid[x][y];
 	}
+	
+	record Vec2(int x, int y) {}
 
 	class Vec4 {
 		
@@ -327,5 +443,11 @@ public class MarchingSquares {
 		public String toString() {
 			return x + " " + y;
 		}
+	}
+
+
+	public MarchingSquares colorsMap(Integer[][] colorsMap) {
+		colors = colorsMap;
+		return this;
 	}
 }

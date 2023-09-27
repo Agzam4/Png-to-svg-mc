@@ -20,7 +20,7 @@ public class Main {
 	}
 	
 
-	static int skip = 0, limit = Integer.MAX_VALUE;
+	static int skip = 0, limit = 2;
 	
 	private static void eachFile(File file) throws IOException {
 		if(limit < 0) return;
@@ -34,7 +34,7 @@ public class Main {
 				}
 				limit--;
 				if(limit < 0) return;
-				System.out.println(f.getPath());
+//				System.out.println(f.getPath());
 				MarchingSquares.save = f.getName().substring(0, f.getName().length()-4);
 				MarchingSquares.debug = null;
 				System.out.println(MarchingSquares.save);
