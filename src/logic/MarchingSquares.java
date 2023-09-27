@@ -119,7 +119,7 @@ public class MarchingSquares {
 					Node b1 = node(vec2.x1, vec2.y1);
 					Node b2 = node(vec2.x2, vec2.y2);
 					b1.link(b2);
-
+				
 //					if(b1.links.size() != 2) {
 //						g.setColor(Color.blue);
 //						vec1.add(-x, -y);
@@ -173,6 +173,7 @@ public class MarchingSquares {
 			
 			ArrayList<Node> path = nextPath();
 			if(path == null) break;
+			path = simplify(path);
 			svg.append("\n\t<path d=\"");
 			for (int i = 0; i < path.size(); i++) {
 				Node n = path.get(i);
@@ -190,6 +191,28 @@ public class MarchingSquares {
 		return svg.toString();
 	}
 	
+	private ArrayList<Node> simplify(ArrayList<Node> path) {
+		ArrayList<Node> simple = new ArrayList<Node>();
+
+        int ldx = 0; // last dX
+        int ldy = 0; // last dY
+        
+        for (int i = 0; i < path.size(); i++) {
+        	Node c = path.get(i); // current
+            Node n = path.get((i+1)%path.size()); // next
+
+            int dx = c.x - n.x;
+            int dy = c.y - n.y;
+
+            if(dx*ldy != ldx*dy || i == 0) { // Angle not same
+            	simple.add(c);
+            }
+            ldx = dx;
+            ldy = dy;
+        }
+		return simple;
+	}
+
 	int searchIndex = 0;
 	
 	private ArrayList<Node> nextPath() {
@@ -217,7 +240,6 @@ public class MarchingSquares {
 						break;
 					}
 					if(c == start) return path;
-					
 				}
 			}
 		}
