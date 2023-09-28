@@ -20,20 +20,20 @@ public class Main {
 	}
 	
 
-	static int skip = 0, limit = 2;
+//	static int skip = 5, limit = 1;
 	
 	private static void eachFile(File file) throws IOException {
-		if(limit < 0) return;
+//		if(limit < 0) return;
 		for (File f : file.listFiles()) {
 			if(f.isDirectory()) {
 				eachFile(f);
 			} else if(f.getName().endsWith(".png")) {
-				if(skip > 0) {
-					skip--;
-					return;
-				}
-				limit--;
-				if(limit < 0) return;
+//				if(skip > 0) {
+//					skip--;
+//					continue;
+//				}
+//				limit--;
+//				if(limit < 0) return;
 //				System.out.println(f.getPath());
 				MarchingSquares.save = f.getName().substring(0, f.getName().length()-4);
 				MarchingSquares.debug = null;

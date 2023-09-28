@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 
 public class MarchingSquares {
-
+	
 	final boolean[][] bs;
 	final int w, h;
 	
@@ -31,7 +31,7 @@ public class MarchingSquares {
 	static Color color = Color.white;
 	public static String save = "debug";
 	
-	public static boolean drawDebug = true;
+	public static boolean drawDebug = false;
 	
 	int rgb = 0;
 	
@@ -175,7 +175,7 @@ public class MarchingSquares {
 
 					g.setColor(colors[x][y] == null ? Color.darkGray : new Color(colors[x][y]));
 
-					g.fillOval((x+2)*scale - scale/4, (y+2)*scale - scale/4, scale/2, scale/2);
+					g.fillRect((x)*scale - scale/4, (y)*scale - scale/4, scale/2, scale/2);
 
 				}
 			}
@@ -194,13 +194,15 @@ public class MarchingSquares {
 		
 		return this;
 	}
+
+	static int counter = 0;
 	
 	public String toSvgGroup(StringBuilder svg) {
 		
 		svg.append(
 				"""
-				<g fill="@" stroke-width=".1" stroke="#333" stroke-linecap="round" stroke-linejoin="round">
-				""".replaceFirst("@", "rgba(" + color.getRed() + " " + color.getGreen() + " " + color.getBlue() + "/ 90%)")); //  / 90%
+				<g fill="@" stroke-width="0" stroke="#333" stroke-linecap="round" stroke-linejoin="round">
+				""".replaceFirst("@", "rgba(" + color.getRed() + " " + color.getGreen() + " " + color.getBlue() + ")")); //  / 90%
 		
 		searchIndex = 0;
 		
@@ -209,15 +211,18 @@ public class MarchingSquares {
 			ArrayList<Node> nodes = nextPath();
 			if(nodes == null) break;
 			
+			System.out.println(++counter + ") Paths: " + nodes.size());
+			
 			ArrayList<Vec2> vpath = new ArrayList<Vec2>();
 			for (Node n : nodes) {
 				vpath.add(new Vec2(n.x, n.y));
 			}
 			
-//			path = simplify(path);
-//			vpath = sharpen(vpath);
 			vpath = sharpen(vpath);
-//			vpath = sharpen(vpath);
+			
+			System.out.println(counter + "] sharpen paths: " + nodes.size());
+			
+			vpath = simplify(vpath);
 			
 			svg.append("\n\t<path d=\"");
 			for (int i = 0; i < vpath.size(); i++) {
@@ -238,6 +243,7 @@ public class MarchingSquares {
 	
 	private ArrayList<Vec2> sharpen(ArrayList<Vec2> path) {
 		int limit = 10;
+		boolean skipNext = false;
 		while (true) {
 			boolean needReturnd = false;
 			ArrayList<Vec2> sharpen = new ArrayList<Vec2>();
@@ -248,7 +254,10 @@ public class MarchingSquares {
 				int cdx = c1.x-c2.x;
 				int cdy = c1.y-c2.y;
 
-				sharpen.add(new Vec2(c1.x, c1.y));
+				if(!skipNext) {
+					sharpen.add(new Vec2(c1.x, c1.y));
+				}
+				skipNext = false;
 
 				int ca = cdx*cdy;
 
@@ -263,33 +272,97 @@ public class MarchingSquares {
 
 				int pa = pdx*pdy;
 				int na = ndx*ndy;
-
+				
 				int x1 = c1.x + pdx;
 				int y1 = c1.y + pdy;
 
 				int x2 = c2.x - ndx;
 				int y2 = c2.y - ndy;
 
+				Vec2 vec = new Vec2(x1, y1);
 				if(x1 == x2 && y1 == y2) {
 					if(colors[x1][y1] == null) { //x1%2 == 1 && y1%2 == 1) {
-						sharpen.add(new Vec2(x1, y1));
+						sharpen.add(vec);
 						needReturnd = true;
 					}
 					continue;
 				}
 
+				
+				
 				if(pa == na) continue;
 				if(pa == ca) continue;
-				if(na == ca) continue;
+				if(na == ca || pa == ca || pa == na)// continue;
+				{
+					Vec2 nn = element(path, i+3);
+					
+					int nndx = nn.x-n.x;
+					int nndy = nn.y-n.y;
+					int nna = nndx*nndy;
+
+					if(nna == 0) continue;
+					if(pa == 0) continue;
+					if(ca != 0) continue;
+					if(na != 0) continue;
+
+					x1 = c1.x + pdx;
+					if(x1 < 1 || x1 >= w*2) continue;
+					y1 = c1.y + pdy;
+					if(y1 < 1 || y1 >= h*2) continue;
+
+					x2 = n.x - nndx;
+					y2 = n.y - nndy;
+					
+					if(x1 == x2 && y1 == y2 && colors[x1][y1] == null) {
+//						sharpen.remove(vec);
+						skipNext = true;
+						sharpen.add(new Vec2(x1, y1));
+						needReturnd = true;
+					}
+					continue;
+				}
+				if(x1 < 0 || x1 >= w*2) continue;
+				if(y1 < 0 || y1 >= h*2) continue;
+				if(x2 < 0 || x2 >= w*2) continue;
+				if(y2 < 0 || y2 >= h*2) continue;
 
 //				if((x1%2 == 1 && y1%2 == 1) || (x2%2 == 1 && y2%2 == 1)) {
-				if(colors[x1][y1] == null) sharpen.add(new Vec2(x1, y1));
-				if(colors[x2][y2] == null) sharpen.add(new Vec2(x2, y2));
+				if(colors[x1][y1] == null) {
+					sharpen.add(new Vec2(x1, y1));
+					needReturnd = true;
+				}
+				if(colors[x2][y2] == null) {
+					sharpen.add(new Vec2(x2, y2));
+					needReturnd = true;
+				}
+
+				/*
+				Vec2 nn = element(path, i+3);
+				int nndx = nn.x-n.x;
+				int nndy = nn.y-n.y;
+				int nna = nndx*nndy;
+				if(nna == 0) continue;
+				if(pa == 0) continue;
+				if(ca != 0) continue;
+				if(na != 0) continue;
+				int x3 = c1.x + pdx;
+				if(x3 < 1 || x3 >= w*2) continue;
+				int y3 = c1.y + pdy;
+				if(y3 < 1 || y3 >= h*2) continue;
+				int x4 = n.x - nndx;
+				int y4 = n.y - nndy;
+				if(x3 == x4 && y3 == y4 && colors[x3][y3] == null) {
+//					sharpen.remove(vec);
+					skepNext = true;
+					sharpen.add(new Vec2(x3, y3));
+					needReturnd = true;
+					continue;
+				}
+				//*/
 //				}
 				
 //				if(x2%2 == 1 && y2%2 == 1) {
 //				}
-				needReturnd = true;
 			}
 			path = sharpen;
 			if(!needReturnd) break;
@@ -304,15 +377,15 @@ public class MarchingSquares {
 		return array.get((index%array.size()+array.size())%array.size());
 	}
 	
-	private ArrayList<Node> simplify(ArrayList<Node> path) {
-		ArrayList<Node> simple = new ArrayList<Node>();
+	private ArrayList<Vec2> simplify(ArrayList<Vec2> path) {
+		ArrayList<Vec2> simple = new ArrayList<Vec2>();
 
         int ldx = 0; // last dX
         int ldy = 0; // last dY
         
         for (int i = 0; i < path.size(); i++) {
-        	Node c = path.get(i); // current
-            Node n = path.get((i+1)%path.size()); // next
+        	Vec2 c = path.get(i); // current
+        	Vec2 n = path.get((i+1)%path.size()); // next
 
             int dx = c.x - n.x;
             int dy = c.y - n.y;
@@ -341,7 +414,10 @@ public class MarchingSquares {
 				Node c = start;
 				Node last = null;
 				while (true) {
-					if(path.contains(c)) return path;
+					if(path.contains(c)) {
+						System.err.println("Duplicate");
+						return path;
+					}
 					path.add(c);
 					for (Node link : c.links) {
 						if(link == c) continue;

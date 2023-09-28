@@ -23,33 +23,17 @@ public class Converter {
 		for (int y = 0; y < h; y++) {
 			for (int x = 0; x < w; x++) {
 				int rgb = source.getRGB(x, y);
-				colorsMap[x*2][y*2] = rgb;
+//				colorsMap[x*2][y*2] = rgb;
 
-				for (int cy = 0; cy < 2; cy++) {
+				for (int cy = -1; cy < 2; cy++) {
 					for (int cx = 0; cx < 2; cx++) {
 						if(x+cx >= w || y+cy >= h) continue;
+						if(x+cx < 0 || y+cy < 0) continue;
 						if(rgb == source.getRGB(x+cx, y+cy)) {
 							colorsMap[x*2 + cx + 2][y*2 + cy + 2] = rgb;
 						}
 					}
 				}
-				
-//				boolean[] rgbs = {
-//						true,
-//						x+1>=w ? false : rgb == source.getRGB(x+1, y),
-//						y+1>=w ? false : rgb == source.getRGB(x, y+1),
-//						(x+1>=w || y+1>=w) ? false : rgb == source.getRGB(x+1, y+1)
-//				};
-
-//				colorsMap[x*2+1][y*2] = rgb;
-				
-				
-//				if(x+1 <= w && y+1 <= h) {
-//					if(rgb == source.getRGB(x+1, y)) cw = 2;
-//					if(source.getRGB(x+1, y)) cw = 2;
-//					
-//					int rgbb = source.getRGB(x, y+1);
-//				}
 				
 				boolean[][] map = colors.get(rgb);
 				if(map == null) {
@@ -65,7 +49,7 @@ public class Converter {
 		svg.append(
 				"""
 				<svg id="svg" viewBox="-1 -1 @ @" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-				""".replaceFirst("@", (w*2+2)+"").replaceFirst("@", (h*2+2) + ""));
+				""".replaceFirst("@", (w*2+4)+"").replaceFirst("@", (h*2+4) + ""));
 		
 		if(colors.entrySet().size() > 10) {
 			System.err.println("To many colors, skipping");
