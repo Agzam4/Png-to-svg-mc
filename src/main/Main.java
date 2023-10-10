@@ -3,6 +3,7 @@ package main;
 import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 
@@ -13,7 +14,7 @@ public class Main {
 
 	public static void main(String[] args) throws IOException {
 		
-		File source = new File("source/"); ///walls /walls
+		File source = new File("source"); ///walls /walls
 		
 		eachFile(source);
 		
@@ -37,8 +38,10 @@ public class Main {
 //				System.out.println(f.getPath());
 				MarchingSquares.save = f.getName().substring(0, f.getName().length()-4);
 				MarchingSquares.debug = null;
-				System.out.println(MarchingSquares.save);
+				long start = System.nanoTime();
+				System.out.print(MarchingSquares.save);
 				Converter.converter(ImageIO.read(f));
+				System.out.println(" " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) + "ms");
 			}
 		}
 	}

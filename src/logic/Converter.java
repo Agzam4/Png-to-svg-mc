@@ -7,7 +7,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+
+import logic.MarchingSquares.VecPathArea;
 
 public class Converter {
 	
@@ -45,7 +49,7 @@ public class Converter {
 		}
 
 		StringBuilder svg = new StringBuilder();
-		
+		/// width="1320px" height="1320px" 
 		svg.append(
 				"""
 				<svg id="svg" viewBox="-1 -1 @ @" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -56,14 +60,30 @@ public class Converter {
 			return;
 		}
 		
+		ArrayList<VecPathArea> paths = new ArrayList<>();
+		
 		colors.entrySet().forEach(e -> {
 			MarchingSquares.color = new Color(e.getKey());
 //			System.out.println()
 //			;
-			new MarchingSquares(e.getValue()).colorsMap(colorsMap).create(e.getKey()).toSvgGroup(svg);
+			paths.addAll(new MarchingSquares(e.getValue()).colorsMap(colorsMap).create(e.getKey()).getSvgPaths(e.getKey()));
+//			toSvgGroup(svg);
 		});
 		
+		
+		paths.sort(new Comparator<VecPathArea>() {
+
+			@Override
+			public int compare(VecPathArea p1, VecPathArea p2) {
+				return p2.boundsArea() - p1.boundsArea();
+			}
+		});
+		
+		for (VecPathArea p : paths) {
+			svg.append(p.svg());
+		}
 		svg.append("</svg>");
+		
 //		System.out.println(svg.toString());
 		
 		

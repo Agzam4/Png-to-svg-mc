@@ -3,8 +3,6 @@ package logic;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -22,8 +20,8 @@ public class MarchingSquares {
 	
 	public MarchingSquares(boolean[][] bs) {
 		this.bs = bs;
-		w = bs[0].length;
-		h = bs.length;
+		h = bs[0].length;
+		w = bs.length;
 	}
 	
 	static final int scale = 10;
@@ -233,13 +231,116 @@ public class MarchingSquares {
 				svg.append(n.y);
 				svg.append(' ');
 			}
-
 			svg.append("Z\"/>");
 		}
 
 		svg.append("\n</g>\n");
 		return svg.toString();
 	}
+	
+	
+	public ArrayList<VecPathArea> getSvgPaths(int rgb) {
+		ArrayList<VecPathArea> paths = new ArrayList<>();
+		Color color = new Color(rgb);
+		searchIndex = 0;
+		
+		String rgba = "rgba(" + color.getRed() + " " + color.getGreen() + " " + color.getBlue() + " / 100%)";
+		
+		while (true) {
+			
+			ArrayList<Node> nodes = nextPath();
+			if(nodes == null) break;
+			if(nodes.size() < 2) continue;
+
+			int x1 = nodes.get(0).x;
+			int x2 = nodes.get(1).x;
+			int y1 = nodes.get(0).y;
+			int y2 = nodes.get(1).y;
+
+			int dx = x1-x2;
+			int dy = y1-y2;
+
+			dx = Math.min(1, Math.max(-1, dx));
+			dy = Math.min(1, Math.max(-1, dy));
+			
+			double angle = Math.atan2(dy, dx);
+			angle += Math.PI/2;
+
+			dx = (int) Math.round(Math.cos(angle));
+			dy = (int) Math.round(Math.sin(angle));
+
+//			dx += 1;
+//			dy += 1;
+			
+			if(colors[x1 + dx][y1 + dy] != null) {
+				if(colors[x1 + dx][y1 + dy] != rgb) {
+					continue;
+				}
+			}
+			
+//			float dx = nodes.get(0).x - nodes.get(1).x;
+//			float dy = nodes.get(0).y - nodes.get(1).y;
+//			double angle = Math.atan2(dy, dx);
+//			angle += Math.PI;
+			
+			ArrayList<Vec2> vpath = new ArrayList<Vec2>();
+			for (Node n : nodes) {
+				vpath.add(new Vec2(n.x, n.y));
+			}
+			
+			vpath = sharpen(vpath);
+			vpath = simplify(vpath);
+			// stroke=\"#000\" 
+			StringBuilder svg = new StringBuilder("<path color=\"@\" fill=\"");
+			svg.append(rgba);
+			svg.append("\" d=\"");
+			int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE;
+			int maxX = 0, maxY = 0;
+			for (int i = 0; i < vpath.size(); i++) {
+				Vec2 n = vpath.get(i);
+				svg.append(i == 0 ? 'M' : 'L');
+				svg.append(n.x);
+				svg.append(',');
+				svg.append(n.y);
+				svg.append(' ');
+
+				minX = Math.min(minX, n.x);
+				maxX = Math.max(maxX, n.x);
+
+				minY = Math.min(minY, n.y);
+				maxY = Math.max(maxY, n.y);
+			}
+			svg.append("Z\"/>");
+
+			int w = maxX - minX;
+			int h = maxY - minY;
+			
+			paths.add(new VecPathArea(svg.toString().replaceFirst("@", color.toString()), minX, maxX, minY, maxY, w*h));
+		}
+		
+		// Remove groups in groups
+		
+//		ArrayList<VecPathArea> single = new ArrayList<>();
+//		for (VecPathArea path : paths) {
+//			boolean isSingle = true;
+//			for (VecPathArea check : paths) {
+//				if(check == path) continue;
+//				if(path.minX < check.minX && check.maxX < path.maxX) continue;
+//				if(path.minY < check.minY && check.maxY < path.maxY) continue;
+//				isSingle = false;
+//				break;
+//			}
+//			
+//			if(isSingle) {
+//				single.add(path);
+//			}
+//		}
+		
+		return paths;
+		
+	}
+	
+	record VecPathArea(String svg, int minX, int maxX, int minY, int maxY, int boundsArea) {}
 	
 	private ArrayList<Vec2> sharpen(ArrayList<Vec2> path) {
 		int limit = 10;
