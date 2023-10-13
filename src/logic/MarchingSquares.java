@@ -244,7 +244,7 @@ public class MarchingSquares {
 		Color color = new Color(rgb);
 		searchIndex = 0;
 		
-		String rgba = "rgba(" + color.getRed() + " " + color.getGreen() + " " + color.getBlue() + " / 100%)";
+		String rgba = Colors.toHex(color);//"rgba(" + color.getRed() + " " + color.getGreen() + " " + color.getBlue() + " / 100%)";
 		
 		while (true) {
 			
@@ -291,7 +291,7 @@ public class MarchingSquares {
 			vpath = sharpen(vpath);
 			vpath = simplify(vpath);
 			// stroke=\"#000\" 
-			StringBuilder svg = new StringBuilder("<path color=\"@\" fill=\"");
+			StringBuilder svg = new StringBuilder("<path fill=\"");
 			svg.append(rgba);
 			svg.append("\" d=\"");
 			int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE;
@@ -315,7 +315,7 @@ public class MarchingSquares {
 			int w = maxX - minX;
 			int h = maxY - minY;
 			
-			paths.add(new VecPathArea(svg.toString().replaceFirst("@", color.toString()), minX, maxX, minY, maxY, w*h));
+			paths.add(new VecPathArea(svg.toString(), minX, maxX, minY, maxY, w*h));
 		}
 		
 		// Remove groups in groups
