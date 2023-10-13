@@ -15,7 +15,7 @@ import logic.MarchingSquares.VecPathArea;
 
 public class Converter {
 	
-	public static void converter(BufferedImage source) {
+	public static void converter(BufferedImage source, String save) {
 		
 		int w = source.getWidth(); // 32n
 		int h = source.getHeight(); // 32n
@@ -63,10 +63,9 @@ public class Converter {
 		ArrayList<VecPathArea> paths = new ArrayList<>();
 		
 		colors.entrySet().forEach(e -> {
-			MarchingSquares.color = new Color(e.getKey());
 //			System.out.println()
 //			;
-			paths.addAll(new MarchingSquares(e.getValue()).colorsMap(colorsMap).create(e.getKey()).getSvgPaths(e.getKey()));
+			paths.addAll(new MarchingSquares(e.getValue()).colorsMap(colorsMap).create(e.getKey(), save, new Color(e.getKey())).getSvgPaths(e.getKey()));
 //			toSvgGroup(svg);
 		});
 		
@@ -91,7 +90,7 @@ public class Converter {
 			File f = new File("svg");
 			f.mkdirs();
 //			System.out.println(f.getAbsolutePath());
-			Files.write(Paths.get(f.getAbsolutePath() + "/" + MarchingSquares.save + ".svg"), svg.toString().getBytes(StandardCharsets.UTF_8));
+			Files.write(Paths.get(f.getAbsolutePath() + "/" + save + ".svg"), svg.toString().getBytes(StandardCharsets.UTF_8));
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}

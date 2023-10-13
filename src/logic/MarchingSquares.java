@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 
 public class MarchingSquares {
+
+	public static boolean drawDebug = false;
 	
 	final boolean[][] bs;
 	final int w, h;
@@ -25,15 +27,16 @@ public class MarchingSquares {
 	}
 	
 	static final int scale = 10;
-	public static BufferedImage debug;
-	static Color color = Color.white;
-	public static String save = "debug";
 	
-	public static boolean drawDebug = false;
+	public BufferedImage debug;
+	public Color color = Color.white;
+	public String save = "debug";
+	
 	
 	int rgb = 0;
 	
-	public MarchingSquares create(int rgb) {
+	public MarchingSquares create(int rgb, String save, Color color) {
+		this.save = save;
 		this.rgb = rgb;
 //		if(debug == null && drawDebug) 
 		if(drawDebug)
