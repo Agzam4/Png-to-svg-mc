@@ -2,6 +2,7 @@ package logic;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.awt.image.Raster;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -24,16 +25,45 @@ public class Converter {
 
 		Integer[][] colorsMap = new Integer[w*2+2][h*2+2];
 		
+		Raster raster = source.getRaster();
+		
+		int[][] rgbs = new int[h][w];
+		System.out.println("Image: " + w + "x" + h);
+
+		byte[] buffer = new byte[4];
+    	for (int y = 0; y < h; y++) {
+			for (int x = 0; x < w; x++) {
+	    		raster.getDataElements(x, y, 1, 1, buffer);
+	    		if(buffer[3] == 0) {
+	    			buffer[0] = 0;
+	    			buffer[1] = 0;
+	    			buffer[2] = 0;
+	    		}
+	    		rgbs[x][y] = 
+	    				(buffer[0] & 0xFF) << 24 |
+	    				(buffer[1] & 0xFF) << 16 |
+	    				(buffer[2] & 0xFF) << 8 |
+	    				(buffer[3] & 0xFF);
+			}
+    	}
+
+    	
+//		for (int i = 0; i < rgbs.length; i++) {
+//			System.out.println("getDataElements: " + i);
+//			raster.getDataElements(i, 0, rgbs[i]);
+//			raster.
+//		}
+		System.out.println("ok");
+		
 		for (int y = 0; y < h; y++) {
 			for (int x = 0; x < w; x++) {
-				int rgb = source.getRGB(x, y);
-//				colorsMap[x*2][y*2] = rgb;
-
+				int rgb = rgbs[x][y];
+				
 				for (int cy = -1; cy < 2; cy++) {
 					for (int cx = 0; cx < 2; cx++) {
 						if(x+cx >= w || y+cy >= h) continue;
 						if(x+cx < 0 || y+cy < 0) continue;
-						if(rgb == source.getRGB(x+cx, y+cy)) {
+						if(rgb == rgbs[x+cx][y+cy]) {
 							colorsMap[x*2 + cx + 2][y*2 + cy + 2] = rgb;
 						}
 					}
@@ -63,10 +93,8 @@ public class Converter {
 		ArrayList<VecPathArea> paths = new ArrayList<>();
 		
 		colors.entrySet().forEach(e -> {
-//			System.out.println()
-//			;
+			if((e.getKey() & 0xFF) == 0) return;
 			paths.addAll(new MarchingSquares(e.getValue()).colorsMap(colorsMap).create(e.getKey(), save, new Color(e.getKey())).getSvgPaths(e.getKey()));
-//			toSvgGroup(svg);
 		});
 		
 		

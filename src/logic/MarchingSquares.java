@@ -244,10 +244,10 @@ public class MarchingSquares {
 	
 	public ArrayList<VecPathArea> getSvgPaths(int rgb) {
 		ArrayList<VecPathArea> paths = new ArrayList<>();
-		Color color = new Color(rgb);
+//		Color color = new Color(rgb);
 		searchIndex = 0;
 		
-		String rgba = Colors.toHex(color);//"rgba(" + color.getRed() + " " + color.getGreen() + " " + color.getBlue() + " / 100%)";
+		String rgba = Colors.toHex(rgb);//"rgba(" + color.getRed() + " " + color.getGreen() + " " + color.getBlue() + " / 100%)";
 		
 		while (true) {
 			

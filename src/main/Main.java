@@ -37,7 +37,7 @@ public class Main {
 			if(f.isDirectory()) {
 				eachFile(f);
 			} else if(f.getName().endsWith(".png")) {
-				service.submit(() -> {
+//				service.submit(() -> {
 					String save = f.getName().substring(0, f.getName().length()-4);
 //					MarchingSquares.debug = null;
 					long start = System.nanoTime();
@@ -47,7 +47,9 @@ public class Main {
 						e.printStackTrace();
 					}
 					System.out.println(save + " " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) + "ms");
-				});
+//				});
+				
+					
 //				if(skip > 0) {
 //					skip--;
 //					continue;
