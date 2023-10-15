@@ -302,9 +302,9 @@ public class MarchingSquares {
 			for (int i = 0; i < vpath.size(); i++) {
 				Vec2 n = vpath.get(i);
 				svg.append(i == 0 ? 'M' : 'L');
-				svg.append((n.x-1)/2f);
+				svg.append(n.x-1);
 				svg.append(',');
-				svg.append((n.y-1)/2f);
+				svg.append(n.y-1);
 				svg.append(' ');
 
 				minX = Math.min(minX, n.x);
@@ -313,7 +313,7 @@ public class MarchingSquares {
 				minY = Math.min(minY, n.y);
 				maxY = Math.max(maxY, n.y);
 			}
-			svg.append("Z\"/>\n");
+			svg.append("Z\"/>");
 
 			int w = maxX - minX;
 			int h = maxY - minY;

@@ -1,5 +1,6 @@
 package main;
 
+import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -12,22 +13,30 @@ import logic.Converter;
 
 public class Main {
 
-	static ExecutorService service;
+	/*
+	 * Settings
+	 */
+	public static boolean multithreads = false;
+	public static boolean inkscapeMode = false;
+	public static boolean grid = false;
+	public static boolean sourceImage = false;
+	public static int freeProcessors = 1;
+	
 	
 	public static void main(String[] args) throws IOException {
-		int freeProcessors = 0; // <-- change it if want 
 		
 		int threads = Runtime.getRuntime().availableProcessors() - freeProcessors;
 		if(threads < 1) threads = 1;
 		
-		service = Executors.newFixedThreadPool(threads);
+		if(multithreads) service = Executors.newFixedThreadPool(threads);
 		
-		File source = new File("source"); ///walls /walls
+		File source = new File("source/debug");
 		
 		eachFile(source);
 		
 	}
-	
+
+	private static ExecutorService service;
 
 //	static int skip = 5, limit = 1;
 	
@@ -37,22 +46,18 @@ public class Main {
 			if(f.isDirectory()) {
 				eachFile(f);
 			} else if(f.getName().endsWith(".png")) {
-//				service.submit(() -> {
+				Runnable r = () -> {
 					String save = f.getName().substring(0, f.getName().length()-4);
-//					MarchingSquares.debug = null;
 					long start = System.nanoTime();
-					Converter.converter(f, save);
-					System.out.println(save + " " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) + "ms");
-//				});
+					Point p = Converter.converter(f, save);
+					System.out.println(save + " " + p.x + "x" + p.y + " " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) + "ms");
+				};
 				
-					
-//				if(skip > 0) {
-//					skip--;
-//					continue;
-//				}
-//				limit--;
-//				if(limit < 0) return;
-//				System.out.println(f.getPath());
+				if(multithreads) {
+					service.submit(r);
+				} else {
+					r.run();
+				}
 			}
 		}
 	}
