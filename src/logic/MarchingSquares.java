@@ -11,6 +11,8 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
+import main.Main;
+
 public class MarchingSquares {
 
 	public static boolean drawDebug = false;
@@ -302,10 +304,12 @@ public class MarchingSquares {
 			for (int i = 0; i < vpath.size(); i++) {
 				Vec2 n = vpath.get(i);
 				svg.append(i == 0 ? 'M' : 'L');
-				svg.append(n.x-1);
-				svg.append(',');
-				svg.append(n.y-1);
-				svg.append(' ');
+
+				if(!Main.x2SizeMode) {
+					svg.append((n.x-1)/2f + "," + (n.y-1)/2f + " ");
+				}else{
+					svg.append((n.x-1) + "," + (n.y-1) + " ");
+				}
 
 				minX = Math.min(minX, n.x);
 				maxX = Math.max(maxX, n.x);

@@ -86,11 +86,50 @@ public class Converter {
 		}
 
 		StringBuilder svg = new StringBuilder();
-		// For debug: width="1320px" height="1320px" 
+		// For debug: width="1320px" height="1320px"
+
+		if(!Main.x2SizeMode) {
+			w /= 2f;
+			h /= 2f;
+		}
+
 		svg.append(
 				"""
-				<svg id="svg" viewBox="0 0 @ @" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+				<svg id="svg" viewBox="0 0 @ @" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
 				""".replaceFirst("@", (w*2)+"").replaceFirst("@", (h*2) + ""));
+
+		if(Main.grid) {
+			if(Main.inkscapeMode) {
+				svg.append("""
+						<sodipodi:namedview
+							inkscape:snap-global="true"
+							units="px"
+							showgrid="true">
+							<inkscape:grid
+								empspacing="@biggrid"
+								spacingy="@grid"
+								spacingx="@grid"
+								type="xygrid"
+							/>
+						</sodipodi:namedview>
+					"""
+					.replaceFirst("@biggrid", Main.x2SizeMode? "4": "2")
+					.replaceAll("@grid", Main.x2SizeMode? "1": "0.5"));
+			} else {
+				svg.append("<g stroke=\"#00000011\" stroke-width=\".1%\">");
+				for (int y = 0; y < h; y++) {
+					svg.append("""
+							<line x1="0" y1="@" x2="@" y2="@"/>
+						""".replaceFirst("@", y*2+"").replaceFirst("@", w*2+"").replaceFirst("@", y*2+""));
+				}
+				for (int x = 0; x < w; x++) {
+					svg.append("""
+							<line x1="@" y1="0" x2="@" y2="@"/>
+						""".replaceFirst("@", x*2+"").replaceFirst("@", x*2+"").replaceFirst("@", h*2+""));
+				}
+				svg.append("</g>");
+			}
+		}
 		
 		if(colors.entrySet().size() > 10) {
 			System.err.println("To many colors, skipping");
@@ -112,65 +151,40 @@ public class Converter {
 				return p2.boundsArea() - p1.boundsArea();
 			}
 		});
+
 		if(Main.inkscapeMode) {
+			//main layer
 			svg.append("""
 					<g
 						inkscape:groupmode="layer"
 						inkscape:label="Paths">
-					""");
-		}
-		for (VecPathArea p : paths) {
-			svg.append(p.svg());
-		}
-		if(Main.inkscapeMode) {
+					""");		
+			for (VecPathArea p : paths) {
+				svg.append("\t"+p.svg()+"\n");
+			}
 			svg.append("</g>");
+		}else{
+			for (VecPathArea p : paths) {
+				svg.append(p.svg());
+			}
 		}
 		
 		if(Main.sourceImage) {
 			if(Main.inkscapeMode) {
 				svg.append("""
-						<g inkscape:groupmode="layer" inkscape:label="Reference" opacity=".5" sodipodi:insensitive="true">
-						""");
-				svg.append(	
-						"""
-							<image xlink:href="data:image/png;base64,@" height="@" width="@" style="image-rendering:pixelated"/>
-						""".replaceFirst("@", toBase64(source)).replaceFirst("@", w*2 + "").replaceFirst("@", h*2 + ""));
+					\n<g
+						inkscape:groupmode="layer"
+						inkscape:label="Reference"
+						style="display:none"
+						opacity="0.5"
+						sodipodi:insensitive="true">
+						<image style="image-rendering:pixelated" height="@" width="@" xlink:href="data:image/png;base64,@"/>
+					""".replaceFirst("@", w*2 + "").replaceFirst("@", h*2 + "").replaceFirst("@", toBase64(source)));
 				svg.append("</g>");
 			} else {
 				svg.append("""
-						<image href="data:image/png;base64,@" opacity=".5" style="image-rendering: pixelated" height="@" width="@"/>
+						<image opacity=".5" style="image-rendering: pixelated" height="@" width="@" href="data:image/png;base64,@"/>
 						""".replaceFirst("@", toBase64(source)).replaceFirst("@", w*2 + "").replaceFirst("@", h*2 + ""));
-			}
-		}
-		
-		if(Main.grid) {
-			if(Main.inkscapeMode) {
-				svg.append("""
-						<sodipodi:namedview
-							inkscape:snap-global="true"
-							units="px"
-							showgrid="true">
-							<inkscape:grid
-								empspacing="2"
-								spacingy="1"
-								spacingx="1"
-								type="xygrid"
-							/>
-						</sodipodi:namedview>
-					""");
-			} else {
-				svg.append("<g stroke=\"#00000011\" stroke-width=\".1%\">");
-				for (int y = 0; y < h; y++) {
-					svg.append("""
-							<line x1="0" y1="@" x2="@" y2="@"/>
-						""".replaceFirst("@", y*2+"").replaceFirst("@", w*2+"").replaceFirst("@", y*2+""));
-				}
-				for (int x = 0; x < w; x++) {
-					svg.append("""
-							<line x1="@" y1="0" x2="@" y2="@"/>
-						""".replaceFirst("@", x*2+"").replaceFirst("@", x*2+"").replaceFirst("@", h*2+""));
-				}
-				svg.append("</g>");
 			}
 		}
 		
@@ -187,7 +201,7 @@ public class Converter {
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-		return new Point(w,h);
+		return new Point(w, h);
 		
 //		colors.entrySet().forEach(e -> {
 //			for (int y = 0; y < h; y++) {

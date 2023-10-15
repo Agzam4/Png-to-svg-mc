@@ -7,8 +7,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import javax.imageio.ImageIO;
-
 import logic.Converter;
 
 public class Main {
@@ -17,10 +15,12 @@ public class Main {
 	 * Settings
 	 */
 	public static boolean multithreads = false;
-	public static boolean inkscapeMode = false;
-	public static boolean grid = false;
-	public static boolean sourceImage = false;
 	public static int freeProcessors = 1;
+
+	public static boolean inkscapeMode = true;
+	public static boolean grid = true;
+	public static boolean sourceImage = true;
+	public static boolean x2SizeMode = false;
 	
 	
 	public static void main(String[] args) throws IOException {
@@ -30,7 +30,7 @@ public class Main {
 		
 		if(multithreads) service = Executors.newFixedThreadPool(threads);
 		
-		File source = new File("source/debug");
+		File source = new File("source/");
 		
 		eachFile(source);
 		
