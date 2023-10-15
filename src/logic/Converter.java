@@ -1,36 +1,36 @@
 package logic;
 
 import java.awt.Color;
-import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 
 import logic.MarchingSquares.VecPathArea;
 import main.Main;
+import svg.SvgElement;
 
 public class Converter {
 	
-	@SuppressWarnings("unlikely-arg-type")
-	public static Point converter(File file, String save) {
+	public static void converter(File file, String save) {
+		long start = System.nanoTime();
 		
 		BufferedImage source = null;
 		try {
 			source = ImageIO.read(file);
 		} catch (IOException e) {
+			System.err.println(file.getName() + " - err to read file");
 			e.printStackTrace();
-			return new Point(0, 0);
+			return;
 		}
 		
 		int w = source.getWidth();
@@ -85,16 +85,20 @@ public class Converter {
 			}
 		}
 
-		StringBuilder svg = new StringBuilder();
-		// For debug: width="1320px" height="1320px" 
-		svg.append(
-				"""
-				<svg id="svg" viewBox="0 0 @ @" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-				""".replaceFirst("@", (w*2)+"").replaceFirst("@", (h*2) + ""));
+		SvgElement svg = new SvgElement("svg")
+				.attribute("version", "1.1")
+				.attribute("xmlns", "http://www.w3.org/2000/svg")
+				.attribute("xmlns:xlink", "http://www.w3.org/1999/xlink")
+				.attribute("viewBox", "0 0 @ @", w*2*Main.scale, h*2*Main.scale);
+		
+		if(Main.inkscapeMode) {
+			svg.attribute("xmlns:sodipodi", "http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd")
+			.attribute("xmlns:inkscape", "http://www.inkscape.org/namespaces/inkscape");
+		}
 		
 		if(colors.entrySet().size() > 10) {
 			System.err.println("To many colors, skipping");
-			return new Point(w, h);
+			return;
 		}
 		
 		ArrayList<VecPathArea> paths = new ArrayList<>();
@@ -113,104 +117,84 @@ public class Converter {
 			}
 		});
 		if(Main.inkscapeMode) {
-			svg.append("""
-					<g
-						inkscape:groupmode="layer"
-						inkscape:label="Paths">
-					""");
-		}
-		for (VecPathArea p : paths) {
-			svg.append(p.svg());
-		}
-		if(Main.inkscapeMode) {
-			svg.append("</g>");
+			SvgElement layerPaths = new SvgElement("g")
+					.attribute("inkscape:groupmode", "layer")
+					.attribute("inkscape:label", "Paths");
+			for (VecPathArea p : paths) layerPaths.add(p.svg());
+			svg.add(layerPaths);
+		} else {
+			for (VecPathArea p : paths) svg.add(p.svg());
 		}
 		
 		if(Main.sourceImage) {
+			SvgElement image = new SvgElement("image")
+					.attribute("xlink:href", "data:image/png;base64," + Strings.toBase64(source))
+					.attribute("width", w*2*Main.scale)
+					.attribute("height", h*2*Main.scale)
+					.attribute("style", "image-rendering:pixelated");
+					
 			if(Main.inkscapeMode) {
-				svg.append("""
-						<g inkscape:groupmode="layer" inkscape:label="Reference" opacity=".5" sodipodi:insensitive="true">
-						""");
-				svg.append(	
-						"""
-							<image xlink:href="data:image/png;base64,@" height="@" width="@" style="image-rendering:pixelated"/>
-						""".replaceFirst("@", toBase64(source)).replaceFirst("@", w*2 + "").replaceFirst("@", h*2 + ""));
-				svg.append("</g>");
+				SvgElement layerSource = new SvgElement("g")
+						.attribute("inkscape:groupmode", "layer")
+						.attribute("inkscape:label", "Source image")
+						.attribute("sodipodi:insensitive", true)
+						.attribute("opacity", ".5");
+				
+				layerSource.add(image);
+				svg.add(layerSource);
 			} else {
-				svg.append("""
-						<image href="data:image/png;base64,@" opacity=".5" style="image-rendering: pixelated" height="@" width="@"/>
-						""".replaceFirst("@", toBase64(source)).replaceFirst("@", w*2 + "").replaceFirst("@", h*2 + ""));
+				svg.add(image);
 			}
 		}
 		
 		if(Main.grid) {
 			if(Main.inkscapeMode) {
-				svg.append("""
-						<sodipodi:namedview
-							inkscape:snap-global="true"
-							units="px"
-							showgrid="true">
-							<inkscape:grid
-								empspacing="2"
-								spacingy="1"
-								spacingx="1"
-								type="xygrid"
-							/>
-						</sodipodi:namedview>
-					""");
+				svg.add(new SvgElement("sodipodi:namedview")
+						.attribute("inkscape:snap-global", true)
+						.attribute("units", "px")
+						.attribute("showgrid", "true").add(new SvgElement("inkscape:grid")
+								.attribute("type", "xygrid")
+								.attribute("empspacing", 2)
+								.attribute("spacingy", 1)
+								.attribute("spacingx", 1)
+						));
 			} else {
-				svg.append("<g stroke=\"#00000011\" stroke-width=\".1%\">");
-				for (int y = 0; y < h; y++) {
-					svg.append("""
-							<line x1="0" y1="@" x2="@" y2="@"/>
-						""".replaceFirst("@", y*2+"").replaceFirst("@", w*2+"").replaceFirst("@", y*2+""));
+				SvgElement plain = new SvgElement("g")
+						.attribute("stroke", "#00000011")
+						.attribute("stroke-width", ".1%");
+				SvgElement bold = new SvgElement("g")
+						.attribute("stroke", "#00000044")
+						.attribute("stroke-width", ".1%");
+				
+				for (int y = 0; y < h*2; y++) {
+					(y%2 == 0 ? bold : plain).add(new SvgElement("line")
+							.attribute("x1", 0*Main.scale)
+							.attribute("y1", y*Main.scale)
+							.attribute("x2", w*2*Main.scale)
+							.attribute("y2", y*Main.scale)
+							);
 				}
-				for (int x = 0; x < w; x++) {
-					svg.append("""
-							<line x1="@" y1="0" x2="@" y2="@"/>
-						""".replaceFirst("@", x*2+"").replaceFirst("@", x*2+"").replaceFirst("@", h*2+""));
+				for (int x = 0; x < w*2; x++) {
+					(x%2 == 0 ? bold : plain).add(new SvgElement("line")
+								.attribute("x1", x*Main.scale)
+								.attribute("y1", 0)
+								.attribute("x2", x*Main.scale)
+								.attribute("y2", h*2*Main.scale)
+								);
 				}
-				svg.append("</g>");
+				svg.add(plain);
+				svg.add(bold);
 			}
 		}
 		
-		svg.append("</svg>");
-		
 		byte bs[] = svg.toString().getBytes(StandardCharsets.UTF_8);
-//		System.out.println(bs.length + "bytes");
-		
 		try {
 			File f = new File("svg");
 			f.mkdirs();
-//			System.out.println(f.getAbsolutePath());
 			Files.write(Paths.get(f.getAbsolutePath() + "/" + save + ".svg"), bs);
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-		return new Point(w,h);
-		
-//		colors.entrySet().forEach(e -> {
-//			for (int y = 0; y < h; y++) {
-//				for (int x = 0; x < w; x++) {
-//					System.out.print(e.getValue()[x][y] ? "\u2593" : " ");
-//					System.out.print(e.getValue()[x][y] ? "\u2593" : " ");
-//				}
-//				System.out.println();
-//			}
-//			System.out.println();
-//		});
-		
-		
-		
-	}
-	
-	public static String toBase64(BufferedImage img) {
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		try {
-			ImageIO.write(img, "png", baos);
-		} catch (IOException e) {
-			return "";
-		}
-		return Base64.getEncoder().encodeToString(baos.toByteArray());
+		System.out.println(save + " " + w + "x" + h + " " + bs.length + "bytes " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) + "ms");
 	}
 }

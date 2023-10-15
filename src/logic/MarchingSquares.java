@@ -11,6 +11,9 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
+import main.Main;
+import svg.SvgElement;
+
 public class MarchingSquares {
 
 	public static boolean drawDebug = false;
@@ -294,18 +297,17 @@ public class MarchingSquares {
 			vpath = sharpen(vpath);
 			vpath = simplify(vpath);
 			// stroke=\"#000\" 
-			StringBuilder svg = new StringBuilder("<path fill=\"");
-			svg.append(rgba);
-			svg.append("\" d=\"");
+			
+			StringBuilder d = new StringBuilder();
 			int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE;
 			int maxX = 0, maxY = 0;
 			for (int i = 0; i < vpath.size(); i++) {
 				Vec2 n = vpath.get(i);
-				svg.append(i == 0 ? 'M' : 'L');
-				svg.append(n.x-1);
-				svg.append(',');
-				svg.append(n.y-1);
-				svg.append(' ');
+				d.append(i == 0 ? 'M' : 'L');
+				d.append(Strings.toString((n.x-1)*Main.scale));
+				d.append(',');
+				d.append(Strings.toString((n.y-1)*Main.scale));
+				d.append(' ');
 
 				minX = Math.min(minX, n.x);
 				maxX = Math.max(maxX, n.x);
@@ -313,12 +315,16 @@ public class MarchingSquares {
 				minY = Math.min(minY, n.y);
 				maxY = Math.max(maxY, n.y);
 			}
-			svg.append("Z\"/>");
+			d.append('Z');
 
 			int w = maxX - minX;
 			int h = maxY - minY;
 			
-			paths.add(new VecPathArea(svg.toString(), minX, maxX, minY, maxY, w*h));
+			SvgElement svg = new SvgElement("path")
+					.attribute("fill", rgba)
+					.attribute("d", d);
+			
+			paths.add(new VecPathArea(svg, minX, maxX, minY, maxY, w*h));
 		}
 		
 		// Remove groups in groups
@@ -343,7 +349,7 @@ public class MarchingSquares {
 		
 	}
 	
-	record VecPathArea(String svg, int minX, int maxX, int minY, int maxY, int boundsArea) {}
+	record VecPathArea(SvgElement svg, int minX, int maxX, int minY, int maxY, int boundsArea) {}
 	
 	private ArrayList<Vec2> sharpen(ArrayList<Vec2> path) {
 		int limit = 10;
