@@ -41,11 +41,7 @@ public class Main {
 					String save = f.getName().substring(0, f.getName().length()-4);
 //					MarchingSquares.debug = null;
 					long start = System.nanoTime();
-					try {
-						Converter.converter(ImageIO.read(f), save);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+					Converter.converter(f, save);
 					System.out.println(save + " " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) + "ms");
 //				});
 				
