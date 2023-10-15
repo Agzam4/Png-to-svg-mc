@@ -189,6 +189,11 @@ public class Converter {
 		}
 		
 		svg.append("</svg>");
+
+		if(!Main.x2SizeMode) {
+			w *= 2f;
+			h *= 2f;
+		}
 		
 		byte bs[] = svg.toString().getBytes(StandardCharsets.UTF_8);
 //		System.out.println(bs.length + "bytes");
