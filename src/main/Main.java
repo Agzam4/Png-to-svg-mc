@@ -13,23 +13,21 @@ public class Main {
 	 * Settings
 	 */
 	public static boolean multithreads = true;
-	public static boolean inkscapeMode = true;
+	public static boolean inkscapeMode = false;
 	public static boolean grid = true;
-	public static boolean sourceImage = true;
+	public static boolean sourceImage = false;
 	public static int freeProcessors = 1;
 	public static float scale = .5f;
 	public static String svgTab = "\t"; // null for one-line SVG
 	
 	
 	public static void main(String[] args) throws IOException {
-		
 		int threads = Runtime.getRuntime().availableProcessors() - freeProcessors;
 		if(threads < 1) threads = 1;
 		
 		if(multithreads) service = Executors.newFixedThreadPool(threads);
 		
 		File source = new File("source");
-		
 		eachFile(source);
 		isEnd = true;
 		

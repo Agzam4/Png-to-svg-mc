@@ -28,30 +28,32 @@ public class MarchingSquares {
 		h = bs[0].length;
 		w = bs.length;
 	}
+
+	public MarchingSquares colorsMap(Integer[][] colorsMap) {
+		colors = colorsMap;
+		return this;
+	}
 	
 	static final int scale = 10;
 	
-	public BufferedImage debug;
 	public Color color = Color.white;
 	public String save = "debug";
-	
 	
 	int rgb = 0;
 	
 	public MarchingSquares create(int rgb, String save, Color color) {
 		this.save = save;
 		this.rgb = rgb;
-//		if(debug == null && drawDebug) 
-		if(drawDebug)
-			debug = new BufferedImage(w*scale*2, h*scale*2, BufferedImage.TYPE_INT_RGB);
+		
+		BufferedImage debug = null;
+		if(drawDebug) debug = new BufferedImage(w*scale*2, h*scale*2, BufferedImage.TYPE_INT_RGB);
 		
 		grid = new Node[w*2][h*2];
 		
 		Graphics2D g = drawDebug ? (Graphics2D) debug.getGraphics() : null;
 		if(drawDebug) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
-		
-//		g.scale(scale, scale);
+		// Creating normal vectors for each pixel
 		for (int y = -1; y < h; y++) {
 			for (int x = -1; x < w; x++) {
 				boolean outY = y < 0 || y+1 >= h;
@@ -105,57 +107,25 @@ public class MarchingSquares {
 					g.drawRect(x*2*scale, y*2*scale, 2*scale, 2*scale);
 				}
 				
-				if(drawDebug) {
-//					if(x > 0 && y > 0) g.setColor(bs[x][y] ? color : (colors[x][y] == null ? Color.darkGray : new Color(colors[x][y])));
-//					g.fillOval(x*2*scale - scale/4, y*2*scale - scale/4, scale/2, scale/2);
-
-//					g.setColor(color);
-				}
-				
-				if(vec1 == null && vec2 == null) continue;
+				if(vec1 == null && vec2 == null) continue; // Do not allow add null
 
 				if(drawDebug) g.setStroke(new BasicStroke(scale/2f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
 				if(vec1 != null) {
-//					g.drawLine((x*2+vec1.x1)*scale, (y*2+vec1.y1)*scale, (x*2+vec1.x2)*scale, (y*2+vec1.y2)*scale);
 					vec1.add(x*2, y*2);
-					
 					Node a1 = node(vec1.x1, vec1.y1);
 					Node a2 = node(vec1.x2, vec1.y2);
 					a1.link(a2);
-
-//					if(a1.links.size() != 2) {
-//						g.setColor(Color.red);
-//						vec1.add(-x, -y);
-//						g.fillRect(a1.x*2*scale, a1.y*2*scale, 1, 1);
-//						
-//						for (Node l : a1.links) {
-//							g.setStroke(new BasicStroke(scale/5f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
-//							g.drawLine(a1.x*2*scale, a1.y*2*scale, l.x*2*scale, l.y*2*scale);
-//						}
-//					}
 				}
 				if(drawDebug) {
 					g.setColor(color);
 					g.setStroke(new BasicStroke(scale/2f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
 				}
 				if(vec2 != null) {
-//					g.drawLine((x*2+vec2.x1)*scale, (y*2+vec2.y1)*scale, (x*2+vec2.x2)*scale, (y*2+vec2.y2)*scale);
 					vec2.add(x*2, y*2);
 					
 					Node b1 = node(vec2.x1, vec2.y1);
 					Node b2 = node(vec2.x2, vec2.y2);
 					b1.link(b2);
-				
-//					if(b1.links.size() != 2) {
-//						g.setColor(Color.blue);
-//						vec1.add(-x, -y);
-//						g.fillRect(b1.x*2*scale,b1.y*2*scale, 1, 1);
-//						
-//						for (Node l : b1.links) {
-//							g.setStroke(new BasicStroke(scale/5f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
-//							g.drawLine(b1.x*2*scale, b1.y*2*scale, l.x*2*scale, l.y*2*scale);
-//						}
-//					}
 				}
 			}
 		}
@@ -201,56 +171,10 @@ public class MarchingSquares {
 
 	static int counter = 0;
 	
-	public String toSvgGroup(StringBuilder svg) {
-		
-		svg.append(
-				"""
-				<g fill="@" stroke-width="0" stroke="#333" stroke-linecap="round" stroke-linejoin="round">
-				""".replaceFirst("@", "rgba(" + color.getRed() + " " + color.getGreen() + " " + color.getBlue() + ")")); //  / 90%
-		
-		searchIndex = 0;
-		
-		while (true) {
-			
-			ArrayList<Node> nodes = nextPath();
-			if(nodes == null) break;
-			
-			System.out.println(++counter + ") Paths: " + nodes.size());
-			
-			ArrayList<Vec2> vpath = new ArrayList<Vec2>();
-			for (Node n : nodes) {
-				vpath.add(new Vec2(n.x, n.y));
-			}
-			
-			vpath = sharpen(vpath);
-			
-			System.out.println(counter + "] sharpen paths: " + nodes.size());
-			
-			vpath = simplify(vpath);
-			
-			svg.append("\n\t<path d=\"");
-			for (int i = 0; i < vpath.size(); i++) {
-				Vec2 n = vpath.get(i);
-				svg.append(i == 0 ? 'M' : 'L');
-				svg.append(n.x);
-				svg.append(',');
-				svg.append(n.y);
-				svg.append(' ');
-			}
-			svg.append("Z\"/>");
-		}
-
-		svg.append("\n</g>\n");
-		return svg.toString();
-	}
-	
-	
 	public ArrayList<VecPathArea> getSvgPaths(int rgb) {
 		ArrayList<VecPathArea> paths = new ArrayList<>();
-//		Color color = new Color(rgb);
-		searchIndex = 0;
 		
-		String rgba = Colors.toHex(rgb);//"rgba(" + color.getRed() + " " + color.getGreen() + " " + color.getBlue() + " / 100%)";
+		String rgba = Colors.toHex(rgb);
 		
 		while (true) {
 			
@@ -351,6 +275,12 @@ public class MarchingSquares {
 	
 	record VecPathArea(SvgElement svg, int minX, int maxX, int minY, int maxY, int boundsArea) {}
 	
+	boolean nullCheck = false;
+	
+	/**
+	 * @param path - closed path of normals vectors
+	 * @return
+	 */
 	private ArrayList<Vec2> sharpen(ArrayList<Vec2> path) {
 		int limit = 10;
 		boolean skipNext = false;
@@ -391,7 +321,7 @@ public class MarchingSquares {
 
 				Vec2 vec = new Vec2(x1, y1);
 				if(x1 == x2 && y1 == y2) {
-					if(colors[x1][y1] == null) { //x1%2 == 1 && y1%2 == 1) {
+					if(colors[x1][y1] == null || nullCheck) { //x1%2 == 1 && y1%2 == 1) { // TODO
 						sharpen.add(vec);
 						needReturnd = true;
 					}
@@ -423,8 +353,7 @@ public class MarchingSquares {
 					x2 = n.x - nndx;
 					y2 = n.y - nndy;
 					
-					if(x1 == x2 && y1 == y2 && colors[x1][y1] == null) {
-//						sharpen.remove(vec);
+					if(x1 == x2 && y1 == y2 && (colors[x1][y1] == null || nullCheck)) { // TODO
 						skipNext = true;
 						sharpen.add(new Vec2(x1, y1));
 						needReturnd = true;
@@ -437,13 +366,13 @@ public class MarchingSquares {
 				if(y2 < 0 || y2 >= h*2) continue;
 
 //				if((x1%2 == 1 && y1%2 == 1) || (x2%2 == 1 && y2%2 == 1)) {
-				if(colors[x1][y1] == null) {
+				if(colors[x1][y1] == null || nullCheck) { // TODO
 					sharpen.add(new Vec2(x1, y1));
-					needReturnd = true;
+//					needReturnd = true;
 				}
-				if(colors[x2][y2] == null) {
+				if(colors[x2][y2] == null || nullCheck) { // TODO
 					sharpen.add(new Vec2(x2, y2));
-					needReturnd = true;
+//					needReturnd = true;
 				}
 
 				/*
@@ -482,11 +411,23 @@ public class MarchingSquares {
 		return path;
 	}
 	
+	public void extendVectors(ArrayList<Vec2> path, int i1, int i2) {
+		Vec2 c1 = element(path, i1);
+		Vec2 c2 = element(path, i1+1);
+		
+		Vec2 n1 = element(path, i2);
+		Vec2 n2 = element(path, i2+1);
+	}
+	
 	private <T> T element(ArrayList<T> array, int index) {
 		if(index >= 0) return array.get(index%array.size());
 		return array.get((index%array.size()+array.size())%array.size());
 	}
 	
+	/**
+	 * @param path - 
+	 * @return path without unnecessary points 
+	 */
 	private ArrayList<Vec2> simplify(ArrayList<Vec2> path) {
 		ArrayList<Vec2> simple = new ArrayList<Vec2>();
 
@@ -509,8 +450,9 @@ public class MarchingSquares {
 		return simple;
 	}
 
-	int searchIndex = 0;
-	
+	/**
+	 * @return next closed path or <code>null<code> if it not found
+	 */
 	private ArrayList<Node> nextPath() {
 		for (int y = 0; y < h*2; y++) {
 			for (int x = 0; x < w*2; x++) {
@@ -519,7 +461,6 @@ public class MarchingSquares {
 				ArrayList<Node> path = new ArrayList<Node>();
 				
 				Node start = grid[x][y];
-//				start.remove();
 				
 				Node c = start;
 				Node last = null;
@@ -532,7 +473,6 @@ public class MarchingSquares {
 					for (Node link : c.links) {
 						if(link == c) continue;
 						if(link == last) continue;
-//						if(path.contains(link)) return path;
 						last = c;
 						c.unlink(link);
 						c = link;
@@ -542,35 +482,16 @@ public class MarchingSquares {
 				}
 			}
 		}
-//		for (int i = searchIndex; i < w*h; i++) {
-//			int x = i%(w*2);
-//			int y = (i-x);
-//			searchIndex++;
-//			if(grid[x][y] == null) continue;
-//			ArrayList<Node> path = new ArrayList<Node>();
-//			
-//			Node start = grid[x][y];
-//			
-//			Node c = start;
-//			while (true) {
-//				path.add(c);
-//				for (Node link : c.links) {
-//					if(link == c) continue;
-//					if(path.contains(link)) return path;
-//					c = link;
-//					break;
-//				}
-//				
-//			}
-//		}
 		return null;
 	}
 	
+	/**
+	 * @param x - x-coordinate in {@link #grid}
+	 * @param y - y-coordinate in {@link #grid}
+	 * @return node by coordinates in {@link #grid} (creates new if it <code>null<code>
+	 */
 	private Node node(int x, int y) {
-		if(grid[x][y] == null) {
-			grid[x][y] = new Node(x, y);
-//			colors[x][y] = rgb;
-		}
+		if(grid[x][y] == null) grid[x][y] = new Node(x, y);
 		return grid[x][y];
 	}
 	
@@ -614,12 +535,7 @@ public class MarchingSquares {
 			links.remove(link);
 			link.links.remove(this);
 		}
-
-//		public void remove() {
-////			links = null;
-//			grid[x][y] = null;
-//		}
-
+		
 		public void link(Node n) {
 			if(!links.contains(n)) links.add(n);
 			if(!n.links.contains(this)) n.links.add(this);
@@ -630,10 +546,48 @@ public class MarchingSquares {
 			return x + " " + y;
 		}
 	}
+	
+	
+	/**
+	 * @deprecated
+	 */
+	public String toSvgGroup(StringBuilder svg) {
+		svg.append(
+				"""
+				<g fill="@" stroke-width="0" stroke="#333" stroke-linecap="round" stroke-linejoin="round">
+				""".replaceFirst("@", "rgba(" + color.getRed() + " " + color.getGreen() + " " + color.getBlue() + ")")); //  / 90%
+		
+		while (true) {
+			
+			ArrayList<Node> nodes = nextPath();
+			if(nodes == null) break;
+			
+			System.out.println(++counter + ") Paths: " + nodes.size());
+			
+			ArrayList<Vec2> vpath = new ArrayList<Vec2>();
+			for (Node n : nodes) {
+				vpath.add(new Vec2(n.x, n.y));
+			}
+			
+			vpath = sharpen(vpath);
+			
+			System.out.println(counter + "] sharpen paths: " + nodes.size());
+			
+			vpath = simplify(vpath);
+			
+			svg.append("\n\t<path d=\"");
+			for (int i = 0; i < vpath.size(); i++) {
+				Vec2 n = vpath.get(i);
+				svg.append(i == 0 ? 'M' : 'L');
+				svg.append(n.x);
+				svg.append(',');
+				svg.append(n.y);
+				svg.append(' ');
+			}
+			svg.append("Z\"/>");
+		}
 
-
-	public MarchingSquares colorsMap(Integer[][] colorsMap) {
-		colors = colorsMap;
-		return this;
+		svg.append("\n</g>\n");
+		return svg.toString();
 	}
 }

@@ -7,8 +7,17 @@ import java.util.Base64;
 
 import javax.imageio.ImageIO;
 
+/**
+ * Class to convert objects to String
+ * @author Agzam4
+ */
 public class Strings {
 
+	/**
+	 * Convert image to BASE64 in PNG format
+	 * @param img - image
+	 * @return encoded in base64 image
+	 */
 	public static String toBase64(BufferedImage img) {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
@@ -18,13 +27,29 @@ public class Strings {
 		}
 		return Base64.getEncoder().encodeToString(baos.toByteArray());
 	}
-
+	
+	/**
+	 * @param object
+	 * @return:<br>
+	 * <code>"null"</code> if object is null<br>
+	 * {@link #floatString(object)} if object instance of Float<br>
+	 * on otherwise return {@link #object.toString(Object)};
+	 */
 	public static String toString(Object object) {
 		if(object instanceof Float f) return floatString(f);
 		if(object == null) return "null";
 		return object.toString();
 	}
 	
+	/**
+	 * Convert float to String
+	 * @param value - float value
+	 * @return a short string variant of float:<br>
+	 * <code>
+	 * 1.1 -> 1.1 <br>
+	 * 1.0 -> 1
+	 * </code>
+	 */
 	public static String floatString(float value) {
 		if(value == (int)value) return ((int)value) + "";
 		return value + "";
