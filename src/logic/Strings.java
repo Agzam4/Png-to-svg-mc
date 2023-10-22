@@ -8,7 +8,7 @@ import java.util.Base64;
 import javax.imageio.ImageIO;
 
 /**
- * Class to convert objects to String
+ * Class to convert objects to String and some transforms with Strings
  * @author Agzam4
  */
 public class Strings {
@@ -54,4 +54,18 @@ public class Strings {
 		if(value == (int)value) return ((int)value) + "";
 		return value + "";
 	}
+
+//	public static String replaceStart(String a, String b) {
+//		if(b.length() < a.length()) return replaceStart(b, a);
+//		
+//		for (int i = 0; i < b.length(); i++) {
+//			if(a.charAt(i) == b.charAt(i)) continue;
+//			StringBuilder end = new StringBuilder();
+//			for (int j = i; j < a.length(); j++) {
+//				end.append(a.charAt(j));
+//			}
+//			return end.substring(i);
+//		}
+//		return "";
+//	}
 }

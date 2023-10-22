@@ -97,7 +97,7 @@ public class Converter {
 		}
 		
 		if(colors.entrySet().size() > 10) {
-			System.err.println("To many colors, skipping");
+			System.err.println("To many colors, skipping (" + colors.entrySet().size() + "/10)");
 			return;
 		}
 		
@@ -189,12 +189,17 @@ public class Converter {
 		
 		byte bs[] = svg.toString().getBytes(StandardCharsets.UTF_8);
 		try {
-			File f = new File("svg");
-			f.mkdirs();
-			Files.write(Paths.get(f.getAbsolutePath() + "/" + save + ".svg"), bs);
+			File output =  new File(Main.output.getAbsoluteFile() + file.getAbsolutePath().substring(Main.source.getAbsolutePath().length()));
+			output.getParentFile().mkdirs();
+			String outpath = output.getAbsolutePath();
+			outpath = outpath.substring(0, outpath.length()-3);
+			Files.write(Paths.get(outpath + "svg"), bs);
+//			File f = new File("svg");
+//			f.mkdirs();
+//			Files.write(Paths.get(f.getAbsolutePath() + "/" + save + ".svg"), bs);
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-		System.out.println(save + " " + w + "x" + h + " " + bs.length + "bytes " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) + "ms");
+		System.out.println(save + " " + w + "x" + h + " | " + bs.length + "bytes " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) + "ms");
 	}
 }

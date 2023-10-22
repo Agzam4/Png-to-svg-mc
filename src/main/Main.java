@@ -19,7 +19,8 @@ public class Main {
 	public static int freeProcessors = 1;
 	public static float scale = .5f;
 	public static String svgTab = "\t"; // null for one-line SVG
-	
+	public static File output = new File("svg"); // output files directory
+	public static File source = new File("source"); // source files directory
 	
 	public static void main(String[] args) throws IOException {
 		int threads = Runtime.getRuntime().availableProcessors() - freeProcessors;
@@ -27,7 +28,6 @@ public class Main {
 		
 		if(multithreads) service = Executors.newFixedThreadPool(threads);
 		
-		File source = new File("source");
 		eachFile(source);
 		isEnd = true;
 		
