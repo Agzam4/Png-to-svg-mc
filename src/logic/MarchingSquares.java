@@ -497,56 +497,7 @@ public class MarchingSquares {
 	
 	record Vec2(int x, int y) {}
 
-	class Vec4 {
-		
-		int x1, y1, x2, y2;
-		
-		public Vec4(int x1, int y1, int x2, int y2) {
-			this.x1 = x1;
-			this.x2 = x2;
-			this.y1 = y1;
-			this.y2 = y2;
-		}
-
-		public void add(int x, int y) {
-			x1 += x;
-			x2 += x;
-			
-			y1 += y;
-			y2 += y;
-		}
-	}
-	
 	Node[][] grid;
-	
-	
-	class Node {
-		
-		ArrayList<Node> links = new ArrayList<Node>();
-
-		int x, y;
-		
-		public Node(int x, int y) {
-			this.x = x;
-			this.y = y;
-		}
-
-		public void unlink(Node link) {
-			links.remove(link);
-			link.links.remove(this);
-		}
-		
-		public void link(Node n) {
-			if(!links.contains(n)) links.add(n);
-			if(!n.links.contains(this)) n.links.add(this);
-		}
-		
-		@Override
-		public String toString() {
-			return x + " " + y;
-		}
-	}
-	
 	
 	/**
 	 * @deprecated
