@@ -28,6 +28,7 @@ public class MulticolorsMarchingSquares {
 
 	boolean tCase = true;
 	boolean yCase = true;
+	boolean vCase = true;
 	
 	
 	static { // Generating cases
@@ -265,13 +266,69 @@ public class MulticolorsMarchingSquares {
 
 //				nr1.link(s1);
 //				nr2.link(s1);
-				
-				removeNode(s2);
-				removeNode(n);
+
+					removeNode(s2);
+					removeNode(n);
 			}
 		}
-		
-		// TODO: V-case
+
+		// Sharpen V-cases
+		if (vCase)
+		for (int y = 0; y < h * 2 + 1; y++) {
+			for (int x = 0; x < w * 2 + 1; x++) {
+				Node n = grid[x][y];
+				if (n == null) continue;
+				if (n.links() != 2) continue;
+
+				Node n1 = n.get(0);
+				Node n2 = n.get(1);
+
+				if (n1.links() != 2) continue;
+				if (n2.links() != 2) continue;
+
+				if (n1.diagonal(n)) continue;
+				if (n2.diagonal(n)) continue;
+
+				Node r1 = n1.get(0) == n ? n1.get(1) : n1.get(0);
+				Node r2 = n2.get(0) == n ? n2.get(1) : n2.get(0);
+
+				if (!n1.diagonal(r1)) continue;
+				if (!n2.diagonal(r2)) continue;
+
+				g.setColor(new Color(255, 0, 255, 150));
+				g.fillOval(n.x * scale - scale / 2, n.y * scale - scale / 2, scale, scale);
+
+				int dx1 = r1.x - n1.x;
+				int dy1 = r1.y - n1.y;
+
+				int dx2 = r2.x - n2.x;
+				int dy2 = r2.y - n2.y;
+
+				int x1 = n1.x - dx1;
+				int y1 = n1.y - dy1;
+				int x2 = n2.x - dx2;
+				int y2 = n2.y - dy2;
+
+				if (x1 != x2) continue;
+				if (y1 != y2) continue;
+
+				Node ns = node(x1, y1);
+
+				ns.link(n1);
+				ns.link(n2);
+				removeNode(n);
+
+				g.setColor(new Color(116, 0, 255, 150));
+				g.fillOval(x1 * scale - scale / 2, y1 * scale - scale / 2, scale, scale);
+				/**
+				 *                NS
+				 *               /  \
+				 *             N1-N_-N2
+				 *            /        \
+				 *           R1         R2
+				 */
+			}
+		}
 		
 		// Borders
 
@@ -606,9 +663,9 @@ public class MulticolorsMarchingSquares {
 						ypoints[i] = n.y;
 						used[n.x][n.y] = true;
 						d.append(i == 0 ? 'M' : 'L');
-						d.append(Strings.toString((n.x)*Main.scale));
+						d.append(Strings.toString((n.x+1)*Main.scale));
 						d.append(',');
-						d.append(Strings.toString((n.y)*Main.scale));
+						d.append(Strings.toString((n.y+1)*Main.scale));
 						d.append(' ');
 
 						minX = Math.min(minX, n.x);
