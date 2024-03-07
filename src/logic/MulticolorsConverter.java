@@ -98,7 +98,7 @@ public class MulticolorsConverter {
 		}
 
 		if(colors.entrySet().size() > 150) {
-			System.err.println("To many colors, skipping (" + colors.entrySet().size() + "/10)");
+			System.err.println("To many colors, skipping (" + colors.entrySet().size() + "/150)");
 			return;
 		}
 
@@ -142,7 +142,8 @@ public class MulticolorsConverter {
 						.attribute("inkscape:groupmode", "layer")
 						.attribute("inkscape:label", "Source image")
 						.attribute("sodipodi:insensitive", true)
-						.attribute("opacity", ".5");
+						.attribute("opacity", ".5")
+						.attribute("style", "display:none");
 
 				layerSource.add(image);
 				svg.add(layerSource);
