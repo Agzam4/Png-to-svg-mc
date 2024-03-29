@@ -34,8 +34,8 @@ public class MulticolorsConverter {
 			return;
 		}
 		
-		int w = source.getWidth();
-		int h = source.getHeight();
+		int w = source.getWidth()+2;
+		int h = source.getHeight()+2;
 
 		HashMap<Integer, boolean[][]> colors = new HashMap<Integer, boolean[][]>();
 
@@ -46,16 +46,26 @@ public class MulticolorsConverter {
 		int[][] rgbs = new int[w][h];
 
 		byte[] buffer = new byte[4];
-		for (int y = 0; y < h; y++) {
-			for (int x = 0; x < w; x++) {
-				raster.getDataElements(x, y, 1, 1, buffer);
+		for (int y = -1; y < h-1; y++) {
+			for (int x = -1; x < w-1; x++) {
+				if(x < 0 || y < 0 || x >= w-2 || y >= h-2) {
+					buffer[0] = 123;
+					buffer[1] = 0;
+					buffer[2] = 0;
+					buffer[3] = 123;
+					rgbs[x+1][y+1] = 0xFF337755;
+					continue;
+				} else {
+					raster.getDataElements(x, y, 1, 1, buffer);
+				}
 				if(buffer[3] == 0) {
 					buffer[0] = 0;
 					buffer[1] = 0;
 					buffer[2] = 0;
 					buffer[3] = 0;
 				}
-				rgbs[x][y] = 
+				
+				rgbs[x+1][y+1] = 
 						(buffer[0] & 0xFF) << 24 |
 						(buffer[1] & 0xFF) << 16 |
 						(buffer[2] & 0xFF) << 8 |
@@ -85,6 +95,9 @@ public class MulticolorsConverter {
 				map[x+1][y+1] = true;
 			}
 		}
+		
+		w -= 2;
+		h -= 2;
 
 		SvgElement svg = new SvgElement("svg")
 				.attribute("version", "1.1")
@@ -98,7 +111,7 @@ public class MulticolorsConverter {
 		}
 
 		if(colors.entrySet().size() > 150) {
-			System.err.println("To many colors, skipping (" + colors.entrySet().size() + "/150)");
+			System.err.println("To many colors, skipping (" + colors.entrySet().size() + "/10)");
 			return;
 		}
 
@@ -135,6 +148,9 @@ public class MulticolorsConverter {
 					.attribute("xlink:href", "data:image/png;base64," + Strings.toBase64(source))
 					.attribute("width", w*2*Main.scale)
 					.attribute("height", h*2*Main.scale)
+//					.attribute("x", (0)*Main.scale)
+//					.attribute("y", (0)*Main.scale)
+					.attribute("opacity", ".5")
 					.attribute("style", "image-rendering:pixelated");
 
 			if(Main.inkscapeMode) {
@@ -142,8 +158,7 @@ public class MulticolorsConverter {
 						.attribute("inkscape:groupmode", "layer")
 						.attribute("inkscape:label", "Source image")
 						.attribute("sodipodi:insensitive", true)
-						.attribute("opacity", ".5")
-						.attribute("style", "display:none");
+						.attribute("opacity", ".5");
 
 				layerSource.add(image);
 				svg.add(layerSource);

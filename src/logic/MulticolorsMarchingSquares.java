@@ -29,6 +29,8 @@ public class MulticolorsMarchingSquares {
 	boolean tCase = true;
 	boolean yCase = true;
 	boolean vCase = true;
+	private boolean warnings = false;
+	private boolean debugImage = false;
 	
 	
 	static { // Generating cases
@@ -81,9 +83,9 @@ public class MulticolorsMarchingSquares {
 	 */
 	public MulticolorsMarchingSquares create(String save) {
 		int scale = 5;
-		BufferedImage debug = new BufferedImage(w*2*scale, h*2*scale, BufferedImage.TYPE_INT_RGB);
-		Graphics2D g = (Graphics2D) debug.getGraphics();
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		BufferedImage debug = debugImage ? new BufferedImage(w*2*scale, h*2*scale, BufferedImage.TYPE_INT_RGB) : null;
+		Graphics2D g = debugImage ? (Graphics2D) debug.getGraphics() : null;
+		if(debugImage) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
 		grid = new Node[w*2+1][h*2+1];
 		colors = new int[w*2+1][h*2+1];
@@ -114,7 +116,7 @@ public class MulticolorsMarchingSquares {
 				colors[x*2][y*2] = Math.max(colorsCount, colors[x*2][y*2]);
 				colors[x*2+1][y*2+1] = Math.max(colorsCount, colors[x*2+1][y*2+1]);
 				
-				g.setColor(Color.green.darker().darker());
+				if(debugImage) g.setColor(Color.green.darker().darker());
 				for (int i = 0; i < vecs.length; i++) {
 					vecs[i] = MulticolorsMarchingSquares.vecs[key][i].copy().add(x*2, y*2);
 //					g.drawLine(vecs[i].x1*scale, vecs[i].y1*scale, vecs[i].x2*scale, vecs[i].y2*scale);
@@ -204,16 +206,18 @@ public class MulticolorsMarchingSquares {
 				if(n0.links() != 2 || n1.links() != 2 || n1.links() != 2) continue;
 				int diagonals = (n0.diagonal(nr0)?1:0) + (n1.diagonal(nr1)?1:0) + (n2.diagonal(nr2)?1:0);
 				if(diagonals != 2) continue;
+				
+				if(debugImage) {
+					g.setColor(new Color(0,0,255,50));
+					g.fillOval(n.x*scale - scale/2, n.y*scale - scale/2, scale, scale);
+					g.setColor(new Color(0,180,255,150));
 
-				g.setColor(new Color(0,0,255,50));
-				g.fillOval(n.x*scale - scale/2, n.y*scale - scale/2, scale, scale);
-				g.setColor(new Color(0,180,255,150));
+					g.fillOval(n0.x*scale - scale/2, n0.y*scale - scale/2, scale, scale);
+					g.fillOval(n1.x*scale - scale/2, n1.y*scale - scale/2, scale, scale);
+					g.fillOval(n2.x*scale - scale/2, n2.y*scale - scale/2, scale, scale);
 
-				g.fillOval(n0.x*scale - scale/2, n0.y*scale - scale/2, scale, scale);
-				g.fillOval(n1.x*scale - scale/2, n1.y*scale - scale/2, scale, scale);
-				g.fillOval(n2.x*scale - scale/2, n2.y*scale - scale/2, scale, scale);
-
-				g.setColor(new Color(0,255,255,150));
+					g.setColor(new Color(0,255,255,150));
+				}
 
 //				g.fillOval(nr0.x*scale - scale/2, nr0.y*scale - scale/2, scale, scale);
 //				g.fillOval(nr1.x*scale - scale/2, nr1.y*scale - scale/2, scale, scale);
@@ -232,26 +236,25 @@ public class MulticolorsMarchingSquares {
 				 */
 				
 				Node s2 = n0.diagonal(nr0) ? (n1.diagonal(nr1) ? nr2 : nr1) : nr0;
-				g.setColor(new Color(255,0,255,50));
-				g.fillOval(s2.x*scale - scale/2, s2.y*scale - scale/2, scale, scale);
+				if(debugImage) g.setColor(new Color(255,0,255,50));
+				if(debugImage) g.fillOval(s2.x*scale - scale/2, s2.y*scale - scale/2, scale, scale);
 				
 				if(s2.links() != 2) continue;
 				
 				Node s3 = s2.get(0).contains(n) ? s2.get(1) : s2.get(0);
-				g.setColor(new Color(255,0,127,50));
-				g.fillOval(s3.x*scale - scale/2, s3.y*scale - scale/2, scale, scale);
+				if(debugImage) g.setColor(new Color(255,0,127,50));
+				if(debugImage) g.fillOval(s3.x*scale - scale/2, s3.y*scale - scale/2, scale, scale);
 				
 				if(s3.links() != 2) continue;
 
 				Node sr = s3.get(0) == s2 ? s3.get(1) : s3.get(0);
-				g.fillOval(sr.x*scale - scale/2, sr.y*scale - scale/2, scale, scale);
+				if(debugImage) g.fillOval(sr.x*scale - scale/2, sr.y*scale - scale/2, scale, scale);
 				
 				Node s1 = s2.get(0) == s3 ? s2.get(1) : s2.get(0);
 				Node ns = node(s3.x*2 - sr.x, s3.y*2 - sr.y);
 
-				g.setColor(new Color(255,0,255,150));
-
-				g.fillOval(s1.x*scale - scale/2, s1.y*scale - scale/2, scale, scale);
+				if(debugImage) g.setColor(new Color(255,0,255,150));
+				if(debugImage) g.fillOval(s1.x*scale - scale/2, s1.y*scale - scale/2, scale, scale);
 				
 				ns.link(s3);
 				ns.link(s1);
@@ -266,113 +269,129 @@ public class MulticolorsMarchingSquares {
 
 //				nr1.link(s1);
 //				nr2.link(s1);
-
-					removeNode(s2);
-					removeNode(n);
+				
+				removeNode(s2);
+				removeNode(n);
 			}
 		}
-
-		// Sharpen V-cases
-		if (vCase)
-		for (int y = 0; y < h * 2 + 1; y++) {
-			for (int x = 0; x < w * 2 + 1; x++) {
+		
+		if(vCase) 
+		for (int y = 0; y < h*2+1; y++) {
+			for (int x = 0; x < w*2+1; x++) {
 				Node n = grid[x][y];
-				if (n == null) continue;
-				if (n.links() != 2) continue;
+				if(n == null) continue;
+				if(n.links() != 2) continue;
 
 				Node n1 = n.get(0);
 				Node n2 = n.get(1);
 
-				if (n1.links() != 2) continue;
-				if (n2.links() != 2) continue;
-
-				if (n1.diagonal(n)) continue;
-				if (n2.diagonal(n)) continue;
+				if(n1.links() != 2) continue;
+				if(n2.links() != 2) continue;
+				
+				if(n1.diagonal(n)) continue;
+				if(n2.diagonal(n)) continue;
 
 				Node r1 = n1.get(0) == n ? n1.get(1) : n1.get(0);
 				Node r2 = n2.get(0) == n ? n2.get(1) : n2.get(0);
+				
+				if(!n1.diagonal(r1)) continue;
+				if(!n2.diagonal(r2)) continue;
+				
+				if(debugImage) g.setColor(new Color(255,0,255,150));
+				if(debugImage) g.fillOval(n.x*scale - scale/2, n.y*scale - scale/2, scale, scale);
 
-				if (!n1.diagonal(r1)) continue;
-				if (!n2.diagonal(r2)) continue;
+				int dx1 = r1.x-n1.x;
+				int dy1 = r1.y-n1.y;
 
-				g.setColor(new Color(255, 0, 255, 150));
-				g.fillOval(n.x * scale - scale / 2, n.y * scale - scale / 2, scale, scale);
-
-				int dx1 = r1.x - n1.x;
-				int dy1 = r1.y - n1.y;
-
-				int dx2 = r2.x - n2.x;
-				int dy2 = r2.y - n2.y;
+				int dx2 = r2.x-n2.x;
+				int dy2 = r2.y-n2.y;
 
 				int x1 = n1.x - dx1;
 				int y1 = n1.y - dy1;
 				int x2 = n2.x - dx2;
 				int y2 = n2.y - dy2;
 
-				if (x1 != x2) continue;
-				if (y1 != y2) continue;
-
+				if(x1 != x2) continue;
+				if(y1 != y2) continue;
+				
 				Node ns = node(x1, y1);
 
 				ns.link(n1);
 				ns.link(n2);
 				removeNode(n);
 
-				g.setColor(new Color(116, 0, 255, 150));
-				g.fillOval(x1 * scale - scale / 2, y1 * scale - scale / 2, scale, scale);
+				if(debugImage) g.setColor(new Color(116,0,255,150));
+				if(debugImage) g.fillOval(x1*scale - scale/2, y1*scale - scale/2, scale, scale);
 				/**
-				 *                NS
-				 *               /  \
-				 *             N1-N_-N2
-				 *            /        \
-				 *           R1         R2
+				 * 		       NS
+				 * 		      /  \
+				 * 		    N1-N_-N2
+				 * 		   /        \
+				 * 		  R1         R2
 				 */
 			}
 		}
-		
+
 		// Borders
 
-		for (int x = 0; x < w*2-2; x++) {
-			node(x, 0).link(node(x+1, 0));
-			node(x, h*2-2).link(node(x+1, h*2-2));
+		int left = 1;
+		int top = 1;
+		int right = w*2-3;
+		int bottom = h*2-3;
+		
+		for (int x = left; x < right; x++) {
+			node(x, top).link(node(x+1, top));
+			node(x, bottom).link(node(x+1, bottom));
+//			removeNode(x, 0);
+//			removeNode(x, 1);
+//			removeNode(x, 2);
 			removeNode(x, h*2);
 			removeNode(x, h*2-1);
+			removeNode(x, h*2-2);
 		}
-		for (int y = 0; y < h*2-2; y++) {
-			node(0, y).link(node(0, y+1));
-			node(w*2-2, y).link(node(w*2-2, y+1));
+		for (int y = top; y < bottom; y++) {
+			node(left, y).link(node(left, y+1));
+			node(right, y).link(node(right, y+1));
+			removeNode(w*2, 0);
 			removeNode(w*2, y);
 			removeNode(w*2-1, y);
+			removeNode(w*2-2, y);
 		}
-		
+
+		node(left, top+1).unlink(node(left+1, top));
+		node(right,top+1).unlink(node(right-1, top));
+
+		node(left, bottom-1).unlink(node(left+1, bottom));
+		node(right,bottom-1).unlink(node(right-1, bottom));
 
 		for (int y = 0; y < h*2+1; y++) {
 			for (int x = 0; x < w*2+1; x++) {
 //				g.setColor(new Color(Color.HSBtoRGB(colors[x][y]/5f, 1f, 1f)));
-				g.setColor(new Color(255,255,255,100));
-				g.fillRect(x*scale, y*scale, scale/5, scale/5);
+				if(debugImage) g.setColor(new Color(255,255,255,100));
+				if(debugImage) g.fillRect(x*scale, y*scale, scale/5, scale/5);
 				Node n = grid[x][y];
 				if(n == null) continue;
-				g.setColor(new Color(255,0,0,100));
+				if(debugImage) g.setColor(new Color(255,0,0,100));
 				for (var l : n.links) {
 					if(Math.abs(n.x-l.x) > 1) {
-						g.setColor(new Color(0,255,0));
+						if(debugImage) g.setColor(new Color(0,255,0));
 						System.err.println("Link x size >2: " + n.x + " " + n.y);
 					}
 					if(Math.abs(n.y-l.y) > 1) {
-						g.setColor(new Color(0,0,255));
+						if(debugImage) g.setColor(new Color(0,0,255));
 						System.err.println("Link y size >2");
 					}
-					g.drawLine(n.x*scale, n.y*scale, l.x*scale, l.y*scale);
+					if(debugImage) g.drawLine(n.x*scale, n.y*scale, l.x*scale, l.y*scale);
 				}
 			}
 		}
-		g.dispose();
-		
-		try {
-			ImageIO.write(debug, "png", new File("debug/tmp-" + save + ".png"));
-		} catch (IOException e) {
-			e.printStackTrace();
+		if(debugImage) {
+			g.dispose();
+			try {
+				ImageIO.write(debug, "png", new File("debug/tmp-" + save + ".png"));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		
 		return this;
@@ -539,6 +558,8 @@ public class MulticolorsMarchingSquares {
 	
 	
 	private static int angle(int dx, int dy) {
+		if(dx > 1) dx = 1;
+		if(dy > 1) dy = 1;
 		for (int i = 0; i < es.length; i++) {
 			if(es[i].x() == dx && es[i].y() == dy) return i;
 		}
@@ -594,6 +615,7 @@ public class MulticolorsMarchingSquares {
 		return null;
 	}
 	BufferedImage debug;
+
 	
 	public ArrayList<VecPathArea> getSvgPaths() {
 		ArrayList<VecPathArea> paths = new ArrayList<>();
@@ -602,9 +624,9 @@ public class MulticolorsMarchingSquares {
 		
 //		Debug.createFrame();
 		int scale = 5;
-//		debug = new BufferedImage(w*2*scale, h*2*scale, BufferedImage.TYPE_INT_RGB);
-//		Graphics2D g = (Graphics2D) debug.getGraphics();
-//		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		debug = new BufferedImage(w*2*scale, h*2*scale, BufferedImage.TYPE_INT_RGB);
+		Graphics2D g = (Graphics2D) debug.getGraphics();
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		int lx, ly;
 
 		Vec2 lastEmpty = null;
@@ -618,7 +640,7 @@ public class MulticolorsMarchingSquares {
 				if(grid[x][y].links() != 2) continue;
 				if(grid[x][y].links() > 2) continue;
 				if(lastEmpty != null) {
-					if(Math.abs(lastEmpty.x() - x) > 1) {
+					if(warnings && Math.abs(lastEmpty.x() - x) > 1) {
 						System.err.println("x diff is > 1 : " + lastEmpty.x() + " " + x);
 						lastEmpty = null;
 						continue;
@@ -642,10 +664,6 @@ public class MulticolorsMarchingSquares {
 							n = next;
 							next = findNextNodeBack(next, angle-1);
 						}
-//						g.setColor(Color.black);
-//						g.setStroke(new BasicStroke(2f));
-//						g.drawLine(n.x*scale-1, n.y*scale-1, lx*scale, ly*scale);
-//						Debug.repaint(debug);
 						lx = n.x;
 						ly = n.y;
 						if(next == null) break;
@@ -663,9 +681,9 @@ public class MulticolorsMarchingSquares {
 						ypoints[i] = n.y;
 						used[n.x][n.y] = true;
 						d.append(i == 0 ? 'M' : 'L');
-						d.append(Strings.toString((n.x+1)*Main.scale));
+						d.append(Strings.toString((n.x-1)*Main.scale));
 						d.append(',');
-						d.append(Strings.toString((n.y+1)*Main.scale));
+						d.append(Strings.toString((n.y-1)*Main.scale));
 						d.append(' ');
 
 						minX = Math.min(minX, n.x);
@@ -725,8 +743,11 @@ public class MulticolorsMarchingSquares {
 //					element.attribute("width", .5f);
 //					element.attribute("filter", "drop-shadow(1px 1px 1px black)");
 					element.attribute("fill", Colors.toHex(rgb)); // Colors.toHex(rgbs[x/2][y/2])
-					
-					paths.add(new VecPathArea(element, x, x, y, y, 1));
+//					if(rgb != 0xFF) {
+//						System.out.println(rgb);
+//					} else {
+//					}
+					paths.add(new VecPathArea(element, minX, maxX, minY, maxY, (maxX-minX)*(maxY-minY)));
 				}
 			}
 		}

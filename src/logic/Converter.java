@@ -138,8 +138,7 @@ public class Converter {
 						.attribute("inkscape:groupmode", "layer")
 						.attribute("inkscape:label", "Source image")
 						.attribute("sodipodi:insensitive", true)
-						.attribute("opacity", ".5")
-						.attribute("style", "display:none");
+						.attribute("opacity", ".5");
 				
 				layerSource.add(image);
 				svg.add(layerSource);

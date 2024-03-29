@@ -19,7 +19,7 @@ public class Main {
 	public static boolean grid = false;
 	public static boolean sourceImage = false;
 	public static int freeProcessors = 1;
-	public static float scale = .5f;
+	public static float scale = 1;
 	public static String svgTab = "\t"; // null for one-line SVG
 	public static File output = new File("svg"); // output files directory
 	public static File source = new File("source"); // source files directory
@@ -47,7 +47,7 @@ public class Main {
 				await++;
 				Runnable r = () -> {
 					MulticolorsConverter.converter(f, f.getName().substring(0, f.getName().length()-4));
-					Converter.converter(f, f.getName().substring(0, f.getName().length()-4));
+//					Converter.converter(f, f.getName().substring(0, f.getName().length()-4));
 					await--;
 					if(isEnd && await == 0) {
 						System.exit(0);
