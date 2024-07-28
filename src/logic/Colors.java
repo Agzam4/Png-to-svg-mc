@@ -25,7 +25,10 @@ public class Colors {
 				 (rgba >> 8) & 0xFF, 
 				 (rgba) & 0xFF);
 	}
-
+	/** 
+	 * Change alpha in rgba to max
+	 * @author hortiSquash
+	 **/
 	public static int RGBAtoRGB(int rgba) {
 		return (rgba | 0xFF);
 	}
@@ -89,6 +92,10 @@ public class Colors {
 		return String.format("#%02x%02x%02x%02x", r, g, b, a);
 	}
 
+	/** 
+	 * @return alpha from rgba integer
+	 * @author hortiSquash
+	 **/
 	public static int alpha(int rgba) {
 		return (rgba) & 0xFF;
 	}
