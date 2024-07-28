@@ -86,7 +86,7 @@ public class Converter {
 		}
 
 		SvgElement svg = new SvgElement("svg")
-				.attribute("version", "1.1")
+				.attribute("version", "2.0")
 				.attribute("xmlns", "http://www.w3.org/2000/svg")
 				.attribute("xmlns:xlink", "http://www.w3.org/1999/xlink")
 				.attribute("viewBox", "0 0 @ @", w*2*Main.scale, h*2*Main.scale);

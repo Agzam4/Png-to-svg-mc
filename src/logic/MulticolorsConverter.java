@@ -100,7 +100,7 @@ public class MulticolorsConverter {
 		h -= 2;
 
 		SvgElement svg = new SvgElement("svg")
-				.attribute("version", "1.1")
+				.attribute("version", "2.0")
 				.attribute("xmlns", "http://www.w3.org/2000/svg")
 				.attribute("xmlns:xlink", "http://www.w3.org/1999/xlink")
 				.attribute("viewBox", "0 0 @ @", w*2*Main.scale, h*2*Main.scale);
@@ -150,7 +150,7 @@ public class MulticolorsConverter {
 					.attribute("height", h*2*Main.scale)
 //					.attribute("x", (0)*Main.scale)
 //					.attribute("y", (0)*Main.scale)
-					.attribute("opacity", ".5")
+//					.attribute("opacity", ".5")
 					.attribute("style", "image-rendering:pixelated");
 
 			if(Main.inkscapeMode) {
@@ -219,5 +219,4 @@ public class MulticolorsConverter {
 		}
 		System.out.println(save + " " + w + "x" + h + " | " + bs.length + "bytes " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) + "ms");
 	}
-	
 }

@@ -7,7 +7,7 @@ public class TestDrive {
 	public static void main(String[] args) {
 		
 		SvgElement element = new SvgElement("svg");
-		element.attribute("version", "1.1");
+		element.attribute("version", "2.0");
 		element.attribute("xmlns", "http://www.w3.org/2000/svg");
 		
 		SvgElement layer = new SvgElement("g");
