@@ -26,6 +26,10 @@ public class Colors {
 				 (rgba) & 0xFF);
 	}
 
+	public static int RGBAtoRGB(int rgba) {
+		return (rgba | 0xFF);
+	}
+
 	/**
 	 * @param r - red [0-255]
 	 * @param g - green [0-255]
@@ -38,7 +42,7 @@ public class Colors {
 	 * </code>
 	 */
 	public static String toHex(Color color) {
-		return toHex(color.getRed(), color.getGreen(), color.getBlue());
+		return toHex(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
 	}
 
 	/**
@@ -80,7 +84,12 @@ public class Colors {
 	 * </code>
 	 */
 	public static String toHex(int r, int g, int b, int a) {
-		if(a == 255) return toHex(r, g, b);
+		//if(a == 255) return toHex(r, g, b);
+		if(a == 255) return String.format("#%02x%02x%02x", r, g, b);
 		return String.format("#%02x%02x%02x%02x", r, g, b, a);
+	}
+
+	public static int alpha(int rgba) {
+		return (rgba) & 0xFF;
 	}
 }
