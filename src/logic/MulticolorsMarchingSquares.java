@@ -1072,19 +1072,7 @@ public class MulticolorsMarchingSquares {
 				}
 			}
 		}
-
-		/*
-		for (int i = 0; i < paths.size()-1; i++) {
-			VecPathArea c = paths.get(i);
-			VecPathArea n = paths.get(i);
-			if(c == n) {
-				paths.remove(i+1);
-			}
-		}
-		*/
-
-		System.out.println("Path count: " + paths.size());
-
+
 //		try {
 //			ImageIO.write(debug, "png", new File("debug.png"));
 //		} catch (IOException e) {
