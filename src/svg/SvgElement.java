@@ -23,9 +23,12 @@ public class SvgElement {
 	public SvgElement(String tag) {
 		this.tag = tag;
 	}
-
+	/** 
+	 * Made for easy using <code>ArrayList.contains()</code>
+	 * @author hortiSquash
+	 **/
 	@Override
-	public boolean equals (Object other) {
+	public boolean equals(Object other) {
 		return (Objects.equals(String.valueOf(this), String.valueOf(other)));
 	}
 	
