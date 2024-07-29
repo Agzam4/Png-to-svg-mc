@@ -1,6 +1,5 @@
 package logic;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
@@ -10,7 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.stream.IntStream;
 
@@ -18,7 +16,6 @@ import javax.imageio.ImageIO;
 
 import logic.MarchingSquares.Vec2;
 import logic.MarchingSquares.VecPathArea;
-import main.Debug;
 import main.Main;
 import svg.SvgElement;
 
@@ -30,7 +27,7 @@ public class MulticolorsMarchingSquares {
 	boolean yCase = true;
 	boolean vCase = true;
 	boolean lCase = true;
-	boolean givenamecase1 = true;
+	boolean cornerCase = true;
 	boolean givenamecase2 = true;
 	boolean givenamecase3 = true;
 	private boolean warnings = false;
@@ -151,35 +148,25 @@ public class MulticolorsMarchingSquares {
 				boolean h1 = y-n1.y == 0;
 				boolean h2 = y-n2.y == 0;
 
-				if((x-n0.x)*(y-n0.y) != 0) continue;
-				if((x-n1.x)*(y-n1.y) != 0) continue;
-				if((x-n2.x)*(y-n2.y) != 0) continue;
+				if(n.diagonal(n0) || n.diagonal(n1) || n.diagonal(n2)) continue;
 
 				int hc = (h0?1:0) + (h1?1:0) + (h2?1:0);
-				
-				if(hc == 1) { // "|-" case
-					Node r = h0 ? n0 : (h1 ? n1 : n2);
-					
-					if(r.links() != 2) continue;
-					Node rr = r.get(0) == n ? r.get(1) : r.get(0);
-					
-					int rdx = r.x - rr.x;
-					int rdy = r.y - rr.y;
-					if(rdy == 0) continue;
-					n.unlink(r);
-					r.link(node(r.x + rdx, r.y + rdy)); // rr.link ?
+
+				Node r;
+				if(hc == 1) { // "├-" case
+					r = h0 ? n0 : (h1 ? n1 : n2);
 				} else { // "T" case
-					Node r = h0 ? (h1 ? n2 : n1) : n0; 
-					
-					if(r.links() != 2) continue;
-					Node rr = r.get(0) == n ? r.get(1) : r.get(0);
-					
-					int rdx = r.x - rr.x;
-					int rdy = r.y - rr.y;
-					if(rdx == 0) continue;
-					n.unlink(r);
-					r.link(node(r.x + rdx, r.y + rdy)); // rr.link ?
+					r = h0 ? (h1 ? n2 : n1) : n0;
 				}
+
+				if(r.links() != 2) continue;
+				Node rr = r.next(n);
+
+				int rdx = r.x - rr.x;
+				int rdy = r.y - rr.y;
+				if(!r.diagonal(rr)) continue; //
+				n.unlink(r);
+				r.link(node(r.x + rdx, r.y + rdy));
 			}
 		}
 
@@ -194,22 +181,17 @@ public class MulticolorsMarchingSquares {
 				Node n0 = n.get(0);
 				Node n1 = n.get(1);
 				Node n2 = n.get(2);
-				
 
-				if(n0.links() <= 1 || n1.links() <= 1 || n2.links() <= 1) continue;
-				
-				if((x-n0.x)*(y-n0.y) != 0) continue;
-				if((x-n1.x)*(y-n1.y) != 0) continue;
-				if((x-n2.x)*(y-n2.y) != 0) continue;
+				if(n0.links() != 2 || n1.links() != 2 || n2.links() != 2) continue;
+
+				if(n.diagonal(n0) || n.diagonal(n1) || n.diagonal(n2)) continue;
 
 				// Radicals
-				Node nr0 = n0.get(0) == n ? n0.get(1) : n0.get(0);
-				Node nr1 = n1.get(0) == n ? n1.get(1) : n1.get(0);
-				Node nr2 = n2.get(0) == n ? n2.get(1) : n2.get(0);
+				Node nr0 = n0.next(n);
+				Node nr1 = n1.next(n);
+				Node nr2 = n2.next(n);
 
-				if(n0.links() != 2 || n1.links() != 2 || n1.links() != 2) continue;
-				int diagonals = (n0.diagonal(nr0)?1:0) + (n1.diagonal(nr1)?1:0) + (n2.diagonal(nr2)?1:0);
-				if(diagonals != 2) continue;
+				if((n0.diagonal(nr0)?1:0) + (n1.diagonal(nr1)?1:0) + (n2.diagonal(nr2)?1:0) != 2) continue;
 				
 				if(debugImage) {
 					g.setColor(new Color(0,0,255,50));
@@ -239,51 +221,44 @@ public class MulticolorsMarchingSquares {
 				 * 		R
 				 */
 				
-				Node s2 = n0.diagonal(nr0) ? (n1.diagonal(nr1) ? nr2 : nr1) : nr0;
-				if(debugImage) g.setColor(new Color(255,0,255,50));
-				if(debugImage) g.fillOval(s2.x*scale - scale/2, s2.y*scale - scale/2, scale, scale);
-				
-				if(s2.links() != 2) continue;
-				
-				Node s3 = s2.get(0).contains(n) ? s2.get(1) : s2.get(0);
-				if(debugImage) g.setColor(new Color(255,0,127,50));
-				if(debugImage) g.fillOval(s3.x*scale - scale/2, s3.y*scale - scale/2, scale, scale);
-				
-				if(s3.links() != 2) continue;
-
-				Node sr = s3.get(0) == s2 ? s3.get(1) : s3.get(0);
-				if(debugImage) g.fillOval(sr.x*scale - scale/2, sr.y*scale - scale/2, scale, scale);
-				
-				Node s1 = s2.get(0) == s3 ? s2.get(1) : s2.get(0);
-				Node ns = node(s3.x*2 - sr.x, s3.y*2 - sr.y);
-
+				Node s1 = n0.diagonal(nr0) ? (n1.diagonal(nr1) ? n2 : n1) : n0;
+				//we already tested the links earlier, since s1 ∈ {n0, n1, n2}
 				if(debugImage) g.setColor(new Color(255,0,255,150));
 				if(debugImage) g.fillOval(s1.x*scale - scale/2, s1.y*scale - scale/2, scale, scale);
-				
-				ns.link(s3);
-				ns.link(s1);
 
-				nr0.linkOneAvalible(s1,s2,s3);
-				nr1.linkOneAvalible(n0,n1,n2);
-				nr2.linkOneAvalible(n0,n1,n2);
+				int isWrongSide = 0;
+				for(Node nx : n.links){
+					if(nx == s1) continue; //for n0,n1,n2 that arent s1
+					if(!s1.diagonal(nx.next(n))) isWrongSide++; //skip if s1 is diagonal to rx
+				}
+				if(isWrongSide == 2) continue;
 
-				n0.linkOneAvalible(n1,n2);
-				n1.linkOneAvalible(n0,n2);
-				n2.linkOneAvalible(n0,n1);
+				Node s2 = s1.next(n);
+				if(s2.links() != 2) continue;
+				if(debugImage) g.setColor(new Color(255,0,255,50));
+				if(debugImage) g.fillOval(s2.x*scale - scale/2, s2.y*scale - scale/2, scale, scale);
 
-//				nr1.link(s1);
-//				nr2.link(s1);
-				
-				removeNode(s2);
-				removeNode(n);
+				Node s3 = s2.next(s1);
+				if(s3.links() != 2) continue;
+				if(debugImage) g.setColor(new Color(255,0,127,50));
+				if(debugImage) g.fillOval(s3.x*scale - scale/2, s3.y*scale - scale/2, scale, scale);
 
-				/*
+				Node sr = s3.next(s2);
+				if(debugImage) g.fillOval(sr.x*scale - scale/2, sr.y*scale - scale/2, scale, scale);
+
+				Node ns = node(s3.x*2 - sr.x, s3.y*2 - sr.y);
+
 				//it cant link to itself so why bother
 				s1.link(n0);
 				s1.link(n1);
 				s1.link(n2);
 				removeNode(n);
-				*/
+
+				if(s2 != ns) {
+					ns.link(s3);
+					ns.link(s1);
+					removeNode(s2);
+				}
 			}
 		}
 		
@@ -300,21 +275,18 @@ public class MulticolorsMarchingSquares {
 				if(n1.links() != 2) continue;
 				if(n2.links() != 2) continue;
 				
-				if(n1.diagonal(n)) continue;
-				if(n2.diagonal(n)) continue;
+				if(n1.diagonal(n) || n2.diagonal(n)) continue;
 
-				Node r1 = n1.get(0) == n ? n1.get(1) : n1.get(0);
-				Node r2 = n2.get(0) == n ? n2.get(1) : n2.get(0);
-				
-				if(!n1.diagonal(r1)) continue;
-				if(!n2.diagonal(r2)) continue;
+				Node r1 = n1.next(n);
+				Node r2 = n2.next(n);
+
+				if(!n1.diagonal(r1) || !n2.diagonal(r2)) continue;
 				
 				if(debugImage) g.setColor(new Color(255,0,255,150));
 				if(debugImage) g.fillOval(n.x*scale - scale/2, n.y*scale - scale/2, scale, scale);
 
 				int dx1 = r1.x-n1.x;
 				int dy1 = r1.y-n1.y;
-
 				int dx2 = r2.x-n2.x;
 				int dy2 = r2.y-n2.y;
 
@@ -357,10 +329,12 @@ public class MulticolorsMarchingSquares {
 				 * N3   N2
 				 */
 				if(n.links() != 2) continue;
+
 				Node n1 = n.get(0);
 				Node n2 = n.get(1);
-				if(!n1.diagonal(n)) continue;
-				if(!n2.diagonal(n)) continue;
+
+				if(!n1.diagonal(n) || !n2.diagonal(n)) continue;
+
 				if(n1.links() != 3 && n2.links() != 3) continue;
 				if(n1.links() != 3) {
 					n1 = n.get(1);
@@ -394,7 +368,7 @@ public class MulticolorsMarchingSquares {
 		}
 
 		// Sharpen "\_/" cases
-		if(givenamecase1)
+		if(cornerCase)
 		for (int y = 0; y < h*2+1; y++) {
 			for (int x = 0; x < w*2+1; x++) {
 				Node n = grid[x][y];
@@ -407,18 +381,23 @@ public class MulticolorsMarchingSquares {
 				if(n1.links() != 2) continue;
 				if(n2.links() != 2) continue;
 
-				if(n.diagonal(n1) == n.diagonal(n2)) continue;
+				if(n.diagonal(n1) == n.diagonal(n2)) continue; //stay if one is diagonal and not the other
 				if(n.diagonal(n1)){
 					Node tmp = n1;
 					n1 = n2;
 					n2 = tmp;
 				}
-				Node r2 = n2.get(0) == n ? n2.get(1) : n2.get(0);
+				Node r2 = n2.next(n);
 				if(n2.diagonal(r2)) continue;
 				if(!n2.diagonal(n)) continue;
 
 				int dx = r2.x-n2.x;
 				int dy = r2.y-n2.y;
+				if(2*n.x-n1.x != n2.x-dx || 2*n.y-n1.y != n2.y-dy){
+					System.err.println("Corner-case error: " + n.x + " " + n.y);
+					continue;
+				}
+
 
 				Node ns = node(n2.x - dx, n2.y - dy);
 
@@ -466,12 +445,10 @@ public class MulticolorsMarchingSquares {
 				if(n1.links() != 2) continue;
 				if(n2.links() != 2) continue;
 
-				Node r1 = n1.get(0) == n ? n1.get(1) : n1.get(0);
-				Node r2 = n2.get(0) == n ? n2.get(1) : n2.get(0);
+				Node r1 = n1.next(n);
+				Node r2 = n2.next(n);
 
-				if(n1.diagonal(n2)) continue;
-				if(r1.diagonal(r2)) continue;
-
+				if(n1.diagonal(n2) || r1.diagonal(r2)) continue;
 				if(n2.diagonal(r2) == n1.diagonal(r1)) continue;
 
 				if(n1.diagonal(r1)) {
@@ -492,8 +469,6 @@ public class MulticolorsMarchingSquares {
 
 				Node ns = node(n.x - dx2, n.y - dy2);
 				Node ns2 = node(n1.x - dx1, n1.y - dy1);
-
-				//System.out.println("Acase: " + (n.x-1)/2f + ", " + (n.y-1)/2f);
 
 				n1.unlink(n);
 				n.link(ns);
@@ -517,7 +492,6 @@ public class MulticolorsMarchingSquares {
 		for (int y = 0; y < h*2+1; y++) {
 			for (int x = 0; x < w*2+1; x++) {
 				Node n = grid[x][y];
-
 				if(n == null) continue;
 				if(n.links() != 4) continue;
 
@@ -548,10 +522,10 @@ public class MulticolorsMarchingSquares {
 					}
 				}
 
-				Node r0 = n0.get(0) == n ? n0.get(1) : n0.get(0);
-				Node r1 = n1.get(0) == n ? n1.get(1) : n1.get(0);
-				Node r2 = n2.get(0) == n ? n2.get(1) : n2.get(0);
-				Node r3 = n3.get(0) == n ? n3.get(1) : n3.get(0);
+				Node r0 = n0.next(n);
+				Node r1 = n1.next(n);
+				Node r2 = n2.next(n);
+				Node r3 = n3.next(n);
 
 				if(((n0.diagonal(r0)?1:0) + (n1.diagonal(r1)?1:0) + (n2.diagonal(r2)?1:0) + (n3.diagonal(r3)?1:0)) != 2) continue;
 

@@ -17,6 +17,13 @@ public class Node {
 		return links.get(index);
 	}
 
+	public Node next(Node previous) {
+		/**
+		 * returns connected node on the opposite side of "previous"
+		 */
+		return this.get(0) != previous ? this.get(0) : this.get(1);
+	}
+
 	public void unlink(Node link) {
 		links.remove(link);
 		link.links.remove(this);
@@ -37,6 +44,7 @@ public class Node {
 
 	public boolean diagonal(Node n) {
 		return (x-n.x)*(y-n.y) != 0;
+		//return x == n.x || y == n.y;
 	}
 
 	public boolean contains(Node n) {
@@ -63,11 +71,11 @@ public class Node {
 		return Math.abs(x - n.x) <= 1 && Math.abs(y - n.y) <= 1;
 	}
 
-	public void linkOneAvalible(Node... ns) {
-		for (int i = 0; i < ns.length; i++) {
-			if(!ns[i].canLink(this)) continue;
-			ns[i].link(this);
-			break;
-		}
+	public void linkOneAvailable(Node... ns) {
+        for (Node n : ns) {
+            if (!n.canLink(this)) continue;
+            n.link(this);
+            break;
+        }
 	}
 }

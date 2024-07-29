@@ -158,6 +158,7 @@ public class MulticolorsConverter {
 						.attribute("inkscape:groupmode", "layer")
 						.attribute("inkscape:label", "Source image")
 						.attribute("sodipodi:insensitive", true)
+						.attribute("display", "none")
 						.attribute("opacity", ".5");
 
 				layerSource.add(image);
@@ -175,8 +176,8 @@ public class MulticolorsConverter {
 						.attribute("showgrid", "true").add(new SvgElement("inkscape:grid")
 								.attribute("type", "xygrid")
 								.attribute("empspacing", 2)
-								.attribute("spacingy", 1)
-								.attribute("spacingx", 1)
+								.attribute("spacingy", Main.scale)
+								.attribute("spacingx", Main.scale)
 								));
 			} else {
 				SvgElement plain = new SvgElement("g")
