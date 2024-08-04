@@ -1,4 +1,7 @@
 *.class
+*.project
+*.classpath
+*.prefs
 /debug
 /h
 /debug
