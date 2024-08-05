@@ -23,4 +23,14 @@ public class Vec2 {
 	public Vec2 copy() {
 		return new Vec2(x, y);
 	}
+	
+	public static long pack(int x, int y) {
+		return (((long)x) << 32) | (y & 0xffffffffL);
+	}
+
+	public Vec2 invert() {
+		x = -x;
+		y = -y;
+		return this;
+	}
 }

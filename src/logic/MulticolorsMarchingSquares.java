@@ -16,22 +16,24 @@ import javax.imageio.ImageIO;
 
 import logic.MarchingSquares.Vec2;
 import logic.MarchingSquares.VecPathArea;
+import logic.cases.Case;
 import main.Main;
 import svg.SvgElement;
 
 public class MulticolorsMarchingSquares {
 	
 	static final Vec4[][] vecs;
+	static ArrayList<Case> cases = new ArrayList<Case>();
 
-	boolean tCase = true;
-	boolean yCase = true;
-	boolean vCase = true;
-	boolean lCase = true;
-	boolean cornerCase = true;
-	boolean givenamecase2 = true;
-	boolean givenamecase3 = true;
+	boolean tCase = false;
+	boolean yCase = false;
+	boolean vCase = false;
+	boolean lCase = false;
+	boolean cornerCase = false;
+	boolean givenamecase2 = false;
+	boolean givenamecase3 = false;
 	private boolean warnings = false;
-	private boolean debugImage = false;
+	private boolean debugImage = true;
 	
 	
 	static { // Generating cases
@@ -64,12 +66,21 @@ public class MulticolorsMarchingSquares {
 		create(new int[] {1,0,0,2}, new Vec4[] {new Vec4(1,0, 0,1), new Vec4(1,2, 2,1)}, false,	true);
 		/* 0123 */
 		create(new int[] {0,1,2,3}, new Vec4[] {new Vec4(0,1, 1,1), new Vec4(1,1, 2,1), new Vec4(1,0, 1,1), new Vec4(1,1, 1,2)}, false,	false);
+		
+		for (var f : new File("cases").listFiles()) {
+			try {
+				cases.add(new Case(f));
+			} catch (NumberFormatException | IOException e) {
+				System.err.println("Err to load case: " + f);
+				e.printStackTrace();
+			}
+		}
 	}
 
-	private final int w, h; // real size
-	private Node[][] grid; // x2 + 1 size
-	private int[][] rgbs; // in real size
-	private int[][] colors; // x2 + 1 size
+	public final int w, h; // real size
+	public Node[][] grid; // x2 + 1 size
+	public int[][] rgbs; // in real size
+	public int[][] colors; // x2 + 1 size
 	
 	public MulticolorsMarchingSquares(int[][] rgbs) {
 		this.rgbs = rgbs;
@@ -132,42 +143,48 @@ public class MulticolorsMarchingSquares {
 		// Post cases
 		
 		// Sharpen T-cases
-		if(tCase)
-		for (int y = 0; y < h*2+1; y++) {
-			for (int x = 0; x < w*2+1; x++) {
-				Node n = grid[x][y];
-				if(n == null) continue;
-				if(n.links.size() != 3) continue;
+		if(tCase) 
+			for (int y = 0; y < h*2+1; y++) {
+				for (int x = 0; x < w*2+1; x++) {
+					Node n = grid[x][y];
+					if(n == null) continue;
+					if(n.links.size() != 3) continue;
 
-				Node n0 = n.links.get(0);
-				Node n1 = n.links.get(1);
-				Node n2 = n.links.get(2);
+					Node n0 = n.links.get(0);
+					Node n1 = n.links.get(1);
+					Node n2 = n.links.get(2);
 
-				// is horizontal
-				boolean h0 = y-n0.y == 0;
-				boolean h1 = y-n1.y == 0;
-				boolean h2 = y-n2.y == 0;
+					// is horizontal
+					boolean h0 = y-n0.y == 0;
+					boolean h1 = y-n1.y == 0;
+					boolean h2 = y-n2.y == 0;
 
-				if(n.diagonal(n0) || n.diagonal(n1) || n.diagonal(n2)) continue;
+					if(n.diagonal(n0) || n.diagonal(n1) || n.diagonal(n2)) continue;
 
-				int hc = (h0?1:0) + (h1?1:0) + (h2?1:0);
+					int hc = (h0?1:0) + (h1?1:0) + (h2?1:0);
 
-				Node r;
-				if(hc == 1) { // "├-" case
-					r = h0 ? n0 : (h1 ? n1 : n2);
-				} else { // "T" case
-					r = h0 ? (h1 ? n2 : n1) : n0;
+					Node r;
+					if(hc == 1) { // "├" case
+						r = h0 ? n0 : (h1 ? n1 : n2);
+					} else { // "T" case
+						r = h0 ? (h1 ? n2 : n1) : n0;
+					}
+
+					if(r.links() != 2) continue;
+					Node rr = r.next(n);
+
+					int rdx = r.x - rr.x;
+					int rdy = r.y - rr.y;
+					if(!r.diagonal(rr)) continue;
+					n.unlink(r);
+					r.link(node(r.x + rdx, r.y + rdy));
 				}
-
-				if(r.links() != 2) continue;
-				Node rr = r.next(n);
-
-				int rdx = r.x - rr.x;
-				int rdy = r.y - rr.y;
-				if(!r.diagonal(rr)) continue; //
-				n.unlink(r);
-				r.link(node(r.x + rdx, r.y + rdy));
 			}
+
+		
+		for (int i = 0; i < cases.size(); i++) {
+			cases.get(i).g = g;
+			cases.get(i).apply(this);	
 		}
 
 		// Sharpen Y-cases
@@ -253,6 +270,8 @@ public class MulticolorsMarchingSquares {
 				s1.link(n1);
 				s1.link(n2);
 				removeNode(n);
+				
+				System.out.println("y applyed");
 
 				if(s2 != ns) {
 					ns.link(s3);
@@ -650,7 +669,7 @@ public class MulticolorsMarchingSquares {
 	 * @param y - y-coordinate in {@link #grid}
 	 * @return node by coordinates in {@link #grid} (creates new if it <code>null<code>)
 	 */
-	private Node node(int x, int y) {
+	public Node node(int x, int y) {
 		if(grid[x][y] == null) grid[x][y] = new Node(x, y);
 		return grid[x][y];
 	}
@@ -660,7 +679,7 @@ public class MulticolorsMarchingSquares {
 	 * @param x - x-coordinate in {@link #grid}
 	 * @param y - y-coordinate in {@link #grid}
 	 */
-	private void removeNode(int x, int y) {
+	public void removeNode(int x, int y) {
 		if(grid[x][y] == null) return;
 		grid[x][y].removeLinks();
 		grid[x][y] = null;
@@ -1054,5 +1073,10 @@ public class MulticolorsMarchingSquares {
 //		}
 		return paths;
 	}
+
+	public boolean hasNode(int x, int y) {
+		return grid[x][y] != null;
+	}
+
 
 }

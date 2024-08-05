@@ -2,6 +2,7 @@
 *.project
 *.classpath
 *.prefs
+*.svg
 /debug
 /h
 /debug

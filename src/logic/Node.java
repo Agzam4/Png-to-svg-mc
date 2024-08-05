@@ -4,9 +4,9 @@ import java.util.ArrayList;
 
 public class Node {
 
-	ArrayList<Node> links = new ArrayList<Node>();
+	public ArrayList<Node> links = new ArrayList<Node>();
 
-	int x, y;
+	public final int x, y;
 	
 	public Node(int x, int y) {
 		this.x = x;
