@@ -17,11 +17,14 @@ import java.util.concurrent.TimeUnit;
 import javax.imageio.ImageIO;
 
 import logic.MarchingSquares.VecPathArea;
+import main.Debug;
 import main.Main;
 import svg.SvgElement;
 
 public class MulticolorsConverter {
 
+	static int tmp = 0;
+	
 	public static void converter(File file, String save) {
 		long start = System.nanoTime();
 
@@ -58,26 +61,27 @@ public class MulticolorsConverter {
 				} else {
 					raster.getDataElements(x, y, 1, 1, buffer);
 				}
+				if(buffer[0] == 1) buffer[0] = 0;
 				if(buffer[3] == 0) {
-					buffer[0] = 0;
+					buffer[0] = 1;
 					buffer[1] = 0;
 					buffer[2] = 0;
 					buffer[3] = 0;
 				}
 				
-				rgbs[x+1][y+1] = 
+				rgbs[x+1][y+1] = //source.getRGB(x, y);
 						(buffer[0] & 0xFF) << 24 |
 						(buffer[1] & 0xFF) << 16 |
 						(buffer[2] & 0xFF) << 8 |
 						(buffer[3] & 0xFF);
 			}
 		}
-
+		
 		for (int y = 0; y < h; y++) {
 			for (int x = 0; x < w; x++) {
 				int rgb = rgbs[x][y];
 
-				for (int cy = -1; cy < 2; cy++) {
+				for (int cy = 0; cy < 2; cy++) {
 					for (int cx = 0; cx < 2; cx++) {
 						if(x+cx >= w || y+cy >= h) continue;
 						if(x+cx < 0 || y+cy < 0) continue;
@@ -95,6 +99,22 @@ public class MulticolorsConverter {
 				map[x+1][y+1] = true;
 			}
 		}
+		
+		
+		Debug.image(w, h, 1);
+		tmp = 0;
+		colors.forEach((rgb, map) -> {
+			Debug.color(new Color(Color.HSBtoRGB(tmp/(float)colors.size(), .6f, 1f)));
+			for (int y = 0; y < map.length; y++) {
+				for (int x = 0; x < map[y].length; x++) {
+					if(map[x][y]) {
+						Debug.fillRect(x, y, 1, 1);
+					}
+				}
+			}
+			tmp++;
+		});
+		Debug.write("debug/" + save + "-areas.png");
 		
 		w -= 2;
 		h -= 2;
