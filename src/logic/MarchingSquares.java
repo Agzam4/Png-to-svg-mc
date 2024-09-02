@@ -411,13 +411,13 @@ public class MarchingSquares {
 		return path;
 	}
 	
-	public void extendVectors(ArrayList<Vec2> path, int i1, int i2) {
-		Vec2 c1 = element(path, i1);
-		Vec2 c2 = element(path, i1+1);
-		
-		Vec2 n1 = element(path, i2);
-		Vec2 n2 = element(path, i2+1);
-	}
+//	public void extendVectors(ArrayList<Vec2> path, int i1, int i2) {
+//		Vec2 c1 = element(path, i1);
+//		Vec2 c2 = element(path, i1+1);
+//		
+//		Vec2 n1 = element(path, i2);
+//		Vec2 n2 = element(path, i2+1);
+//	}
 	
 	private <T> T element(ArrayList<T> array, int index) {
 		if(index >= 0) return array.get(index%array.size());

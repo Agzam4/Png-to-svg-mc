@@ -7,3 +7,5 @@
 /h
 /debug
 *.iml
+/bin/
+/zBlocks

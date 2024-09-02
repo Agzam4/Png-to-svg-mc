@@ -10,18 +10,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Stack;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
-import javax.imageio.ImageIO;
-
 import logic.MulticolorsMarchingSquares;
 import logic.Node;
 import logic.Vec2;
+import main.Debug;
 
 public class Case {
 	
@@ -275,7 +269,7 @@ public class Case {
 		public boolean test(MulticolorsMarchingSquares m, int x, int y, Transforms tf, int d) {
 			if(!testLinks(m, x, y, tf, d)) return false;
 			for (var l : links) {
-				g.setColor(Color.magenta);
+				Debug.color(Color.magenta);
 				if(!l.node.before) continue;
 				if(l.node.depth > depth) {
 					if(!l.node.test(m, x + tf.x(l), y + tf.y(l), tf, d+1)) {
