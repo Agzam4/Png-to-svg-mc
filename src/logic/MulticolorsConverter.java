@@ -47,6 +47,7 @@ public class MulticolorsConverter {
 				g.drawImage(source, 0,0, null);
 				g.dispose();
 				ImageIO.write(otherType, "png", file);
+				System.out.println("[!] File " + save + " was rewritten (type changed to 4BYTE_ABGR)");
 			}
 			
 			
