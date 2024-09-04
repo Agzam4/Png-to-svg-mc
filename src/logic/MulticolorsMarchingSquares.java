@@ -38,7 +38,7 @@ public class MulticolorsMarchingSquares {
 	boolean givenamecase2 = true;
 	boolean givenamecase3 = true;
 	
-	private boolean warnings = true;
+	private boolean warnings = false;
 	public boolean debugImage = new File("debug").exists();
 	
 	static { // Generating cases
@@ -150,7 +150,7 @@ public class MulticolorsMarchingSquares {
 		// Sharpen T-cases
 		if(tCase) TCase.apply(this);
 		for (int i = 0; i < cases.size(); i++) {
-			cases.get(i).apply(this);	
+//			cases.get(i).apply(this);	
 		}
 		// Sharpen Y-cases
 		if(yCase) YCase.apply(this);
@@ -578,7 +578,7 @@ public class MulticolorsMarchingSquares {
 				if(grid[x][y].links() > 2) continue;
 				if(lastEmpty != null) {
 					if(warnings && Math.abs(lastEmpty.x() - x) > 1) {
-						if(warnsCount < 0 && warnings) System.err.println("x diff is > 1 : " + lastEmpty.x() + " " + x);
+						if(warnsCount < 0 && warnings) System.err.println("x diff is > 1 : " + lastEmpty.x() + ";" + lastEmpty.y() + " & " + x + ";" + y);
 						warnsCount++;
 						lastEmpty = null;
 						continue;

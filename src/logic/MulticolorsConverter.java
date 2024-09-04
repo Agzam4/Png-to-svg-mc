@@ -31,6 +31,25 @@ public class MulticolorsConverter {
 		BufferedImage source = null;
 		try {
 			source = ImageIO.read(file);
+			if(source.getType() != BufferedImage.TYPE_4BYTE_ABGR) {
+				if(!Main.changeType) {
+					System.err.println("[Warning] " + save + " not has 4byte-argb type! (Current encoding: " + source.getType() + "), enable \"changeType\" to rewrite files");
+					System.out.println("Enable this option for current session?\n> Y/Yes - for this file\n> A/All - for all next files\n[!] The files will be rewritten!!!");
+					String c = Main.scanner.nextLine();
+					if(c.equalsIgnoreCase("A") || c.equalsIgnoreCase("All")) {
+						Main.changeType = true;
+					} else if(!c.equalsIgnoreCase("Y") && !c.equalsIgnoreCase("Yes")) {
+						return;
+					}
+				}
+				BufferedImage otherType = new BufferedImage(source.getWidth(), source.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+				Graphics2D g = (Graphics2D) otherType.getGraphics();
+				g.drawImage(source, 0,0, null);
+				g.dispose();
+				ImageIO.write(otherType, "png", file);
+			}
+			
+			
 		} catch (IOException e) {
 			System.err.println(file.getName() + " - err to read file");
 			e.printStackTrace();
@@ -44,6 +63,7 @@ public class MulticolorsConverter {
 
 		Integer[][] colorsMap = new Integer[w*2+2][h*2+2];
 
+		
 		Raster raster = source.getRaster();
 
 		int[][] rgbs = new int[w][h];
