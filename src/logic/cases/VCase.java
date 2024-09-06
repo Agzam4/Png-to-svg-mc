@@ -20,6 +20,8 @@ public class VCase {
 	 * 	╚═══════════════════╝}
 	 * @author Agzam4
 	 */
+
+	@Deprecated //supersized by generalYcase
 	public static void apply(MulticolorsMarchingSquares mc) {
 		for (int y = 0; y < mc.h*2+1; y++) {
 			for (int x = 0; x < mc.w*2+1; x++) {
