@@ -28,7 +28,7 @@ import logic.cases.GeneralYCase;
 import main.Debug;
 import main.Main;
 import svg.SvgElement;
-a
+
 public class MulticolorsMarchingSquares {
 	
 	static final Vec4[][] vecs;
