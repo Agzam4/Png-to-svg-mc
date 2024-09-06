@@ -4,11 +4,14 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.RenderingHints;
+import java.awt.geom.Area;
+import java.awt.geom.PathIterator;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.stream.IntStream;
 
@@ -21,6 +24,7 @@ import logic.cases.PigeonCase;
 import logic.cases.TCase;
 import logic.cases.VCase;
 import logic.cases.YCase;
+import logic.cases.GeneralYCase;
 import main.Debug;
 import main.Main;
 import svg.SvgElement;
@@ -32,13 +36,14 @@ public class MulticolorsMarchingSquares {
 
 	boolean tCase = true;
 	boolean yCase = true;
-	boolean vCase = true;
+	boolean vCase = false;
 	boolean lCase = true;
 	boolean cornerCase = true;
-	boolean givenamecase2 = true;
-	boolean givenamecase3 = true;
+	boolean pointyCase = true;
+	boolean pigeonCase = false;
+	boolean generalYcase = true;
 	
-	private boolean warnings = true;
+	private boolean warnings = false;
 	public boolean debugImage = new File("debug").exists();
 	
 	static { // Generating cases
@@ -149,17 +154,26 @@ public class MulticolorsMarchingSquares {
 		
 		// Sharpen T-cases
 		if(tCase) TCase.apply(this);
+
+		// Apply the cases from the Case Editor
 		for (int i = 0; i < cases.size(); i++) {
 			cases.get(i).apply(this);	
 		}
+
 		// Sharpen Y-cases
 		if(yCase) YCase.apply(this);
+
+		// Sharpen V-cases
 		if(vCase) VCase.apply(this);
+
+		// Sharpen L-cases
 		if(lCase) Lcase.apply(this);
+
 		// Sharpen "\_/" cases
 		if(cornerCase) CornerCase.apply(this);
+
 		// Sharpen "|\"-cases
-		if(givenamecase2)
+		if(pointyCase)
 		for (int y = 0; y < h*2+1; y++) {
 			for (int x = 0; x < w*2+1; x++) {
 				Node n = grid[x][y];
@@ -231,7 +245,10 @@ public class MulticolorsMarchingSquares {
 		}
 		
 		// Sharpen ᛉ-cases
-		if(givenamecase3) PigeonCase.apply(this);
+		if(pigeonCase) PigeonCase.apply(this);
+
+		// Sharpen general-Y-cases
+		if(generalYcase) GeneralYCase.apply(this);
 
 		// Borders
 
@@ -552,9 +569,36 @@ public class MulticolorsMarchingSquares {
 
 		return simple;
 	}
-	
+
+	private ArrayList<Node> sortNodes(ArrayList<Node> path, boolean ascending_order) {
+		ArrayList<Node> sorted = new ArrayList<Node>();
+
+		Node min = path.get(0);
+		int indexmin = 0;
+		for(int i = 1; i < path.size(); i++) {
+			Node c = path.get(i);
+			if(c.x < min.x || (c.x == min.x && c.y < min.y)){
+				min = c;
+				indexmin = i;
+			}
+		}
+
+		for(int i = indexmin; i < path.size() + indexmin; i++) {
+			Node c = path.get(i % path.size());
+			sorted.add(c);
+		}
+
+		if(sorted.get(1).y > sorted.get(sorted.size()-1).y == ascending_order){
+			Collections.reverse(sorted);
+			return sortNodes(sorted, ascending_order);
+		}
+
+		return sorted;
+	}
+
 	public ArrayList<VecPathArea> getSvgPaths() {
 		ArrayList<VecPathArea> paths = new ArrayList<>();
+		ArrayList<SVGPath> svgPathList = new ArrayList<>();
 		
 		boolean[][] used = new boolean[w*2][h*2];
 		
@@ -610,8 +654,8 @@ public class MulticolorsMarchingSquares {
 					nodes.add(n);
 
 					nodes = simplify(nodes);
-					
-					StringBuilder d = new StringBuilder();
+					nodes = sortNodes(nodes, true);
+
 					int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE;
 					int maxX = 0, maxY = 0;
 					int[] xpoints = new int[nodes.size()], ypoints = new int[nodes.size()];
@@ -620,19 +664,12 @@ public class MulticolorsMarchingSquares {
 						xpoints[i] = n.x;
 						ypoints[i] = n.y;
 						used[n.x][n.y] = true;
-						d.append(i == 0 ? 'M' : 'L');
-						d.append(Strings.toString((n.x-1)*Main.scale));
-						d.append(',');
-						d.append(Strings.toString((n.y-1)*Main.scale));
-						d.append(' ');
 
 						minX = Math.min(minX, n.x);
 						maxX = Math.max(maxX, n.x);
-
 						minY = Math.min(minY, n.y);
 						maxY = Math.max(maxY, n.y);
 					}
-					d.append('Z');
 					
 					Polygon polygon = new Polygon(xpoints, ypoints, nodes.size()); // to check points color and mark "used"
 					int rgb = rgbs[x/2][y/2];
@@ -676,34 +713,111 @@ public class MulticolorsMarchingSquares {
 							}
 						}
 					}
-					
-					SvgElement element = new SvgElement("path");
-					element.attribute("d", d);
-//					element.attribute("x", x/2f);
-//					element.attribute("y", y/2f);
-//					element.attribute("width", .5f);
-//					element.attribute("filter", "drop-shadow(1px 1px 1px black)");
-					//element.attribute("fill", Colors.toHex(rgb)); // Colors.toHex(rgbs[x/2][y/2])
-					element.attribute("fill", Colors.toHex(rgb));
-					if(Colors.alpha(rgb) != 255){
-//						element.attribute("fill-opacity", Colors.alpha(rgb));
-					}
-//					if(rgb != 0xFF) {
-//						System.out.println(rgb);
-//					} else {
-//					}
 
-					VecPathArea tobeadded = new VecPathArea(element, minX, maxX, minY, maxY, area);
+					SVGPath svgPath = new SVGPath();
+					svgPath.path = nodes;
+					svgPath.rgba = rgb;
+					svgPath.area = area;
+					svgPath.hole_area = new Area(polygon);
 
-					if(paths.isEmpty() || !paths.contains(tobeadded)) {
-						if(!d.toString().equals("Z")) {
-							paths.add(tobeadded);
-						}
+					svgPath.minX = minX;
+					svgPath.minY = minY;
+					svgPath.maxX = maxX;
+					svgPath.maxY = maxY;
+
+					if(!svgPathList.contains(svgPath)){
+						svgPathList.add(svgPath);
+					}else{
+						//System.out.println("found same path, skipping");
+						continue;
 					}
 				}
 			}
 		}
-		if(warnings && warnsCount >= 0) System.err.println(warnsCount + " warings hidden");
+
+		for (SVGPath current_svgPath : svgPathList){
+			Area hole_area = current_svgPath.hole_area;
+
+			search_hole:
+			for (SVGPath other_svgPath : svgPathList){
+				if( current_svgPath.minX >= other_svgPath.minX ||
+					current_svgPath.minY >= other_svgPath.minY ||
+					current_svgPath.maxX <= other_svgPath.maxX ||
+					current_svgPath.maxY <= other_svgPath.maxY
+				) continue;
+
+				/*
+				for (Node n : other_svgPath.path){
+					if(!hole_area.contains(n.x, n.y)) continue search_hole;
+				}
+				*/
+
+				hole_area.subtract(new Area(other_svgPath.hole_area));
+			}
+		}
+
+		for (SVGPath current_svgPath : svgPathList){
+			int rgb = current_svgPath.rgba;
+			if(Colors.alpha(rgb) == 0) continue; //dont draw hidden colors
+
+			int minX = current_svgPath.minX;
+			int minY = current_svgPath.minY;
+			int maxX = current_svgPath.maxX;
+			int maxY = current_svgPath.maxY;
+			int area = current_svgPath.area;
+			var hole_area = current_svgPath.hole_area;
+			StringBuilder d = new StringBuilder();
+
+			var pathIterator = hole_area.getPathIterator(null);
+			float[] coords = new float[6];
+			for(; !pathIterator.isDone(); pathIterator.next()){
+				int path_type = pathIterator.currentSegment(coords);
+				switch (path_type){
+					case PathIterator.SEG_MOVETO, PathIterator.SEG_LINETO -> {
+						d.append(path_type == PathIterator.SEG_MOVETO ? "M" : "L");
+						d.append(Strings.toString((coords[0] - 1) * Main.scale));
+						d.append(",");
+						d.append(Strings.toString((coords[1] - 1) * Main.scale));
+						d.append(" ");
+					}
+					case PathIterator.SEG_CLOSE ->
+						d.append("Z ");
+					//TODO holes
+					default -> System.err.println("aaaa");
+				}
+			}
+
+			SvgElement element = new SvgElement("path");
+			element.attribute("d", d);
+//			element.attribute("x", x/2f);
+//			element.attribute("y", y/2f);
+//			element.attribute("width", .5f);
+//			element.attribute("filter", "drop-shadow(1px 1px 1px black)");
+			element.attribute("fill", Colors.toHex(Colors.RGBAtoRGB(rgb)));
+			if(pathIterator.getWindingRule() == PathIterator.WIND_EVEN_ODD){
+				element.attribute("fill-rule", "evenodd");
+			}
+			if(Colors.alpha(rgb) != 255){
+				element.attribute("fill-opacity", Colors.alpha(rgb));
+			}
+//			if(rgb != 0xFF) {
+//				System.out.println(rgb);
+//			} else {
+//			}
+
+			VecPathArea tobeadded = new VecPathArea(element, minX, maxX, minY, maxY, area);
+
+			if(!paths.contains(tobeadded)) {
+				if(!d.toString().equals("Z")) {
+					paths.add(tobeadded);
+				}else{
+					System.err.println("Found the same path despite having sorted earlier???");
+				}
+			}
+		}
+
+		if(warnings && warnsCount >= 0) System.err.println(warnsCount + " warnings hidden");
+
 //		try {
 //			ImageIO.write(debug, "png", new File("debug.png"));
 //		} catch (IOException e) {

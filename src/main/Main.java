@@ -30,7 +30,6 @@ public class Main {
 		if(multithreads) service = Executors.newFixedThreadPool(threads);
 		
 		eachFile(source);
-		isEnd = true;
 
 		if(multithreads){
 			service.shutdown();
@@ -46,22 +45,15 @@ public class Main {
 	}
 
 	private static ExecutorService service;
-	static int await = 0;
-	static boolean isEnd = false;
 
 	private static void eachFile(File file) throws IOException {
 		for (File f : file.listFiles()) {
 			if(f.isDirectory()) {
 				eachFile(f);
 			} else if(f.getName().endsWith(".png")) {
-				await++;
 				Runnable r = () -> {
 					MulticolorsConverter.converter(f, f.getName().substring(0, f.getName().length()-4));
 //					Converter.converter(f, f.getName().substring(0, f.getName().length()-4));
-					await--;
-					if(isEnd && await == 0) {
-						System.exit(0);
-					}
 				};
 				
 				if(multithreads) {
