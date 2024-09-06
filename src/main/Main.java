@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import logic.MulticolorsConverter;
 
 public class Main {
@@ -29,7 +31,18 @@ public class Main {
 		
 		eachFile(source);
 		isEnd = true;
-		
+
+		if(multithreads){
+			service.shutdown();
+			while(true){
+				try {
+					if (service.awaitTermination(10, TimeUnit.MINUTES)) break;
+				} catch (InterruptedException _) {
+					//TODO fix error logging in multithreaded mode
+					System.err.println("Some multithreading error i dont know");
+				}
+			}
+		}
 	}
 
 	private static ExecutorService service;

@@ -89,7 +89,7 @@ public class YCase {
 				s1.link(n2);
 				mc.removeNode(n);
 				
-				System.out.println("y applyed");
+				//System.out.println("y applied");
 
 				if(s2 != ns) {
 					ns.link(s3);
