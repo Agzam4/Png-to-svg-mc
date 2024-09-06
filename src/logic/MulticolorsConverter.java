@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -126,8 +127,8 @@ public class MulticolorsConverter {
 		tmp = 0;
 		colors.forEach((rgb, map) -> {
 			Debug.color(new Color(Color.HSBtoRGB(tmp/(float)colors.size(), .6f, 1f)));
-			for (int y = 0; y < map.length; y++) {
-				for (int x = 0; x < map[y].length; x++) {
+			for (int x = 0; x < map.length; x++) {
+				for (int y = 0; y < map[x].length; y++) {
 					if(map[x][y]) {
 						Debug.fillRect(x, y, 1, 1);
 					}
@@ -143,7 +144,7 @@ public class MulticolorsConverter {
 		SvgElement svg = new SvgElement("svg")
 				.attribute("version", "2.0")
 				.attribute("xmlns", "http://www.w3.org/2000/svg")
-				.attribute("xmlns:xlink", "http://www.w3.org/1999/xlink")
+				//.attribute("xmlns:xlink", "http://www.w3.org/1999/xlink")
 				.attribute("viewBox", "0 0 @ @", w*2*Main.scale, h*2*Main.scale);
 
 		if(Main.inkscapeMode) {
@@ -152,7 +153,7 @@ public class MulticolorsConverter {
 		}
 
 		if(colors.entrySet().size() > 150) {
-			System.err.println("To many colors, skipping (" + colors.entrySet().size() + "/10)");
+			System.err.println("Too many colors, skipping (" + colors.entrySet().size() + "/150)");
 			return;
 		}
 
@@ -186,7 +187,7 @@ public class MulticolorsConverter {
 
 		if(Main.sourceImage) {
 			SvgElement image = new SvgElement("image")
-					.attribute("xlink:href", "data:image/png;base64," + Strings.toBase64(source))
+					.attribute("href", "data:image/png;base64," + Strings.toBase64(source))
 					.attribute("width", w*2*Main.scale)
 					.attribute("height", h*2*Main.scale)
 //					.attribute("x", (0)*Main.scale)
@@ -213,6 +214,7 @@ public class MulticolorsConverter {
 			if(Main.inkscapeMode) {
 				svg.add(new SvgElement("sodipodi:namedview")
 						.attribute("inkscape:snap-global", true)
+						.attribute("inkscape:pagecheckerboard", true)
 						.attribute("units", "px")
 						.attribute("showgrid", "true").add(new SvgElement("inkscape:grid")
 								.attribute("type", "xygrid")
@@ -251,11 +253,12 @@ public class MulticolorsConverter {
 
 		byte bs[] = svg.toString().getBytes(StandardCharsets.UTF_8);
 		try {
-			File output =  new File(Main.output.getAbsoluteFile() + file.getAbsolutePath().substring(Main.source.getAbsolutePath().length()));
+			Path relative_path = Main.source.toPath().relativize(file.toPath());
+			File output = Main.output.toPath().resolve(relative_path).toFile();
 			output.getParentFile().mkdirs();
 			String outpath = output.getAbsolutePath();
 			outpath = outpath.substring(0, outpath.length()-4);
-			Files.write(Paths.get(outpath + "-multi.svg"), bs);
+			Files.write(Paths.get(outpath + ".svg"), bs);
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}

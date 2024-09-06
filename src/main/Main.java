@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import logic.MulticolorsConverter;
 
 public class Main {
@@ -14,7 +16,7 @@ public class Main {
 	 */
 	public static boolean multithreads = false;
 	public static boolean inkscapeMode = true;
-	public static boolean changeType = false; // Save all images as TYPE_4BYTE_ABGR, can be enabled in runtime
+	public static boolean changeType = true; // Save all images as TYPE_4BYTE_ABGR, can be enabled in runtime
 	public static boolean grid = false;
 	public static boolean sourceImage = false;
 	public static int freeProcessors = 1;
@@ -31,27 +33,31 @@ public class Main {
 		if(multithreads) service = Executors.newFixedThreadPool(threads);
 		
 		eachFile(source);
-		isEnd = true;
 		scanner.close();
+
+		if(multithreads){
+			service.shutdown();
+			while(true){
+				try {
+					if (service.awaitTermination(10, TimeUnit.MINUTES)) break;
+				} catch (InterruptedException _) {
+					//TODO fix error logging in multithreaded mode
+					System.err.println("Some multithreading error i dont know");
+				}
+			}
+		}
 	}
 
 	private static ExecutorService service;
-	static int await = 0;
-	static boolean isEnd = false;
 
 	private static void eachFile(File file) throws IOException {
 		for (File f : file.listFiles()) {
 			if(f.isDirectory()) {
 				eachFile(f);
 			} else if(f.getName().endsWith(".png")) {
-				await++;
 				Runnable r = () -> {
 					MulticolorsConverter.converter(f, f.getName().substring(0, f.getName().length()-4));
 //					Converter.converter(f, f.getName().substring(0, f.getName().length()-4));
-					await--;
-					if(isEnd && await == 0) {
-						System.exit(0);
-					}
 				};
 				
 				if(multithreads) {

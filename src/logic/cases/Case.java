@@ -20,7 +20,6 @@ import main.Debug;
 public class Case {
 	
 	/**
-	 * TODO: add more transforms
 	 * TODO: disable transform that duplicates transforming for current case
 	 */
 	
@@ -66,11 +65,14 @@ public class Case {
 	
 	static enum Transforms {
 
+		None((x,y) -> x, (x,y) -> y),
 		FlipX((x,y) -> -x, (x,y) -> y),
 		FlipY((x,y) -> x, (x,y) -> -y),
-		Rotate1((x,y) -> y, (x,y) -> x),
-		Rotate2((x,y) -> -y, (x,y) -> x),
-		None((x,y) -> x, (x,y) -> y);
+		FlipXY((x,y) -> -x, (x,y) -> -y),
+		Rotate90((x,y) -> y, (x,y) -> x),
+		Rotate270((x, y) -> -y, (x, y) -> x),
+		Rotate180((x, y) -> -y, (x, y) -> -x),
+		FlipYRotate90((x, y) -> y, (x, y) -> -x);
 
 		private Transform tx, ty;
 
