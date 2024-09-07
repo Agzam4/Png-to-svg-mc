@@ -13,12 +13,13 @@ public class Main {
 	 * Settings
 	 */
 	public static boolean multithreads = false;
-	public static boolean inkscapeMode = true;
+	public static boolean inkscapeMode = false;
 	public static boolean changeType = false; // Save all images as TYPE_4BYTE_ABGR, can be enabled in runtime
 	public static boolean grid = false;
 	public static boolean sourceImage = false;
 	public static int freeProcessors = 1;
 	public static float scale = 1;
+	public static double stroke = .3; // px
 	public static String svgTab = "\t"; // null for one-line SVG
 	public static File output = new File("svg"); // output files directory
 	public static File source = new File("source"); // source files directory

@@ -99,9 +99,14 @@ public class Debug {
 		line(n1.x, n1.y, n2.x, n2.y);
 	}
 
+	static int imageId;
 	public static void write(String path) {
 		g.dispose();
 		try {
+			if(path.indexOf('@') != -1) {
+				path = path.replaceFirst("@", "" + imageId++);
+			}
+			
 			if(new File(path).getParentFile().exists()) ImageIO.write(image, "png", new File(path));
 		} catch (IOException e) {
 			e.printStackTrace();

@@ -60,13 +60,13 @@ public class PigeonCase {
 				if(n2.links() != 2) continue;
 				if(n3.links() != 2) continue;
 
-				//reorder the nodes so that n0/n1 are opposite, and n2/n3 are opposite
+				// Reorder the nodes so that n0/n1 are opposite, and n2/n3 are opposite
 				if(n0.diagonal(n1)){
 					var tmp = n1;
 					if(n1.diagonal(n3)){ //n3 is opposite of n0
 						n1 = n3;
 						n3 = tmp;
-					}else{ //n3 is same side as n1 -> n2 is opposite of n0
+					}else{ // n3 is same side as n1 -> n2 is opposite of n0
 						n1 = n2;
 						n2 = tmp;
 					}
@@ -79,12 +79,12 @@ public class PigeonCase {
 
 				if(((n0.diagonal(r0)?1:0) + (n1.diagonal(r1)?1:0) + (n2.diagonal(r2)?1:0) + (n3.diagonal(r3)?1:0)) != 2) continue;
 
-				if(!r0.diagonal(n1)) { //n0 n1 vertical line, n2 n3 arms
-					if(r2.diagonal(r3)) continue; //skip if r2 r3 arent aligned, meaning the two arms are opposite side
+				if(!r0.diagonal(n1)) { // n0 n1 vertical line, n2 n3 arms
+					if(r2.diagonal(r3)) continue; // Skip if r2 r3 arent aligned, meaning the two arms are opposite side
 
 					n.unlink(n2);
 					n.unlink(n3);
-					if(!n0.diagonal(r2)) { //n0 on the side of the arms, so n1 is opposite
+					if(!n0.diagonal(r2)) { // n0 on the side of the arms, so n1 is opposite
 						n1.link(n2);
 						n1.link(n3);
 					} else {
@@ -92,11 +92,11 @@ public class PigeonCase {
 						n0.link(n3);
 					}
 
-				} else { //n2 n3 vertical line, n0 n1 arms
-					if(r0.diagonal(r1)) continue; //skip if r0 r1 arent aligned, meaning the two arms are opposite side
+				} else { // n2 n3 vertical line, n0 n1 arms
+					if(r0.diagonal(r1)) continue; // Skip if r0 r1 arent aligned, meaning the two arms are opposite side
 					n.unlink(n0);
 					n.unlink(n1);
-					if(!n2.diagonal(r1)) { //n2 on the side of the arms, so n3 is opposite
+					if(!n2.diagonal(r1)) { // n2 on the side of the arms, so n3 is opposite
 						n3.link(n0);
 						n3.link(n1);
 					} else {

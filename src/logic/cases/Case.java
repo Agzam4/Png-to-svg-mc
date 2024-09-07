@@ -68,8 +68,11 @@ public class Case {
 
 		FlipX((x,y) -> -x, (x,y) -> y),
 		FlipY((x,y) -> x, (x,y) -> -y),
-		Rotate1((x,y) -> y, (x,y) -> x),
-		Rotate2((x,y) -> -y, (x,y) -> x),
+		FlipXY((x,y) -> -x, (x,y) -> -y),
+		Rotate90((x,y) -> y, (x,y) -> x),
+		Rotate270((x, y) -> -y, (x, y) -> x),
+		Rotate180((x, y) -> -y, (x, y) -> -x),
+		FlipYRotate90((x, y) -> y, (x, y) -> -x),
 		None((x,y) -> x, (x,y) -> y);
 
 		private Transform tx, ty;
@@ -98,9 +101,7 @@ public class Case {
 	}
 	
 	private interface Transform {
-		
 		int get(int x, int y);
-		
 	}
 
 	private NodeMask root;
@@ -108,12 +109,6 @@ public class Case {
 	public Graphics2D g;
 	int gscl = 5;
 	
-//	public static void main(String[] args) throws NumberFormatException, IOException {
-//		for (var f : new File("cases").listFiles()) {
-//			Case c = new Case(f);
-//		}
-//	}
-
 	private ArrayList<NodeMask> nodes = new ArrayList<>();
 	private ArrayList<MaskLink> mlinks = new ArrayList<>();
 
@@ -424,7 +419,6 @@ public class Case {
 									from.unlink(to);
 								}
 							}
-							
 //							int nx = x + n.x;
 //							int ny = y + n.y;
 //							if(n.after) {
