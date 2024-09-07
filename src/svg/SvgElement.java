@@ -46,10 +46,14 @@ public class SvgElement {
 	/**
 	 * Return attribute value by name
 	 * @param attribute - attribute name
-	 * @param value - 
+	 * @param value - attribute value, null - to remove attribute
 	 * @return self
 	 */
 	public SvgElement attribute(String attribute, String value) {
+		if(value == null) {
+			attributes.remove(attribute);
+			return this;
+		}
 		if(!attributes.containsKey(attribute)) {
 			attributes.put(attribute, value);
 			return this;
@@ -61,10 +65,14 @@ public class SvgElement {
 	/**
 	 * 
 	 * @param attribute - attribute name
-	 * @param value - attribute value
+	 * @param value - attribute value, null - to remove attribute
 	 * @return self
 	 */
 	public SvgElement attribute(String attribute, Object value) {
+		if(value == null) {
+			attributes.remove(attribute);
+			return this;
+		}
 		return attribute(attribute, Strings.toString(value));
 	}
 
@@ -129,5 +137,18 @@ public class SvgElement {
 		sb.append('>');
 		
 		return sb.toString();
+	}
+	
+	/**
+	 * Copy element with attributes and copied children
+	 * @return copy of self
+	 */
+	public SvgElement copy() {
+		SvgElement copy = new SvgElement(tag);
+		attributes.forEach((k,v) -> copy.attributes.put(k, v));
+		for (int i = 0; i < elements.size(); i++) {
+			copy.elements.add(elements.get(i).copy());
+		}
+		return copy;
 	}
 }

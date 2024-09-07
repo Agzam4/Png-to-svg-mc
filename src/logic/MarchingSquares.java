@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 
 import logic.Converter.VecPathAreaContainer;
-import logic.SvgConverter.VecPathArea;
 import main.Main;
 import svg.SvgElement;
 

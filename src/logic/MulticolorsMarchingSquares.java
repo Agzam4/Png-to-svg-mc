@@ -1,19 +1,14 @@
 package logic;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Polygon;
-import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.stream.IntStream;
 
 import logic.MarchingSquares.Vec2;
-import logic.SvgConverter.VecPathArea;
 import logic.cases.Case;
 import logic.cases.CornerCase;
 import logic.cases.GeneralYCase;
@@ -23,8 +18,6 @@ import logic.cases.TCase;
 import logic.cases.VCase;
 import logic.cases.YCase;
 import main.Debug;
-import main.Main;
-import svg.SvgElement;
 
 public class MulticolorsMarchingSquares {
 	
