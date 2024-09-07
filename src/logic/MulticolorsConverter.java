@@ -1,6 +1,5 @@
 package logic;
 
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
@@ -10,13 +9,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 
-import main.Debug;
 import main.Main;
 import svg.SvgElement;
 
@@ -120,22 +117,6 @@ public class MulticolorsConverter {
 			}
 		}
 		
-		
-//		Debug.image(w, h, 1);
-//		tmp = 0;
-//		colors.forEach((rgb, map) -> {
-//			Debug.color(new Color(Color.HSBtoRGB(tmp/(float)colors.size(), .6f, 1f)));
-//			for (int y = 0; y < map.length; y++) {
-//				for (int x = 0; x < map[y].length; x++) {
-//					if(map[x][y]) {
-//						Debug.fillRect(x, y, 1, 1);
-//					}
-//				}
-//			}
-//			tmp++;
-//		});
-//		Debug.write("debug/" + save + "-areas.png");
-		
 		w -= 2;
 		h -= 2;
 
@@ -157,13 +138,6 @@ public class MulticolorsConverter {
 
 		ArrayList<SvgElement> paths = new ArrayList<SvgElement>();
 		paths.addAll(SvgConverter.getSvgPaths(new MulticolorsMarchingSquares(rgbs).create(save)));
-		//.getSvgPaths();
-
-//		colors.entrySet().forEach(e -> {
-//			if((e.getKey() & 0xFF) == 0) return;
-//			
-//			paths.addAll(new MarchingSquares(e.getValue()).colorsMap(colorsMap).create(e.getKey(), save, new Color(e.getKey())).getSvgPaths(e.getKey()));
-//		});
 
 		if(Main.inkscapeMode) {
 			SvgElement layerPaths = new SvgElement("g")

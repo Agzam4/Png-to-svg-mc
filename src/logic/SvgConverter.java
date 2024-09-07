@@ -1,6 +1,5 @@
 package logic;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -16,7 +15,7 @@ public class SvgConverter {
 		ArrayList<VecPathArea> paths = new ArrayList<>();
 		int pathId = 0;
 		
-		boolean[][][] visited = new boolean[mc.gridWidth()][mc.gridHeight()][]; // 0 mean unvisited
+		boolean[][][] visited = new boolean[mc.gridWidth()][mc.gridHeight()][];
 		for (int y = 0; y < mc.gridHeight(); y++) {
 			for (int x = 0; x < mc.gridWidth(); x++) {
 				if(mc.grid[x][y] == null) continue;
@@ -92,7 +91,7 @@ public class SvgConverter {
 								if(p.y == maxY) dy = -1;
 							}
 							if(dx != 0 || dy != 0) {
-								int key = mc.rgbs[(p.x+dx)/2][((p.y+dy)/2)];
+								int key = mc.rgbs[(p.x)/2+dx][((p.y)/2)+dy];
 								Vec1 c = counter.get(key);
 								if(c == null) {
 									c = new Vec1(0);
@@ -120,44 +119,55 @@ public class SvgConverter {
 		Debug.write("fragments/frag@.png");
 		
 		ArrayList<SvgElement> svg = new ArrayList<SvgElement>();
-//		SvgElement prevSvg = null;
-//		VecPathArea prevPath = null;
-		for (var path : paths) {
+		SvgElement defs = new SvgElement("defs");
+		SvgElement mask = new SvgElement("mask");
+		mask.add(new SvgElement("rect")
+				.attribute("width", mc.gridWidth()*Main.scale)
+				.attribute("height", mc.gridHeight()*Main.scale)
+				.attribute("fill", "#fff")
+			);
+		mask.attribute("id", Strings.toString("alpha-mask"));
+		boolean needMask = false;
+		
+		for (int i = 0; i < paths.size(); i++) {
+			var path = paths.get(i);
 			SvgElement element = new SvgElement("path");
-
-			StringBuilder d = new StringBuilder();
-			for (var p : path.path) {
-				d.append(d.length() == 0 ? 'M' : 'L');
-				d.append(Strings.toString((p.x-1)*Main.scale));
-				d.append(',');
-				d.append(Strings.toString((p.y-1)*Main.scale));
-				d.append(' ');
-			}
-			d.append('Z');
-			
-			element.attribute("d", d);
-//			element.attribute("stroke", Colors.toHex(path.rgb));
+			element.attribute("d", createPath(path.path));
 			if(Main.stroke > 0) {
 				element.attribute("stroke", "black");
 				element.attribute("stroke-width", Main.stroke + "px");
 			}
 			element.attribute("fill", Colors.toHex(path.rgb));
-			if(Colors.alpha(path.rgb) != 255) {
-//				element.attribute("fill-rule", "evenodd");
-				// TODO
+			element.attribute("mask", "url(#alpha-mask)");
+			if(Colors.alpha(path.rgb) != 255 && svg.size() > 0) {
+				needMask = true;
+				mask.add(element.copy().attribute("fill", "#000").attribute("stroke-width", null).attribute("stroke", null));
+				defs.add(mask);
+			} else {
+				mask.add(element.copy().attribute("fill", "#fff").attribute("stroke", null));
+				defs.add(mask);
 			}
-			
-			svg.add(element);
-			
-//			prevSvg = element;
-//			prevPath = path;
+			if(Colors.alpha(path.rgb) > 0) svg.add(element);
 		}
-		
-		System.out.println("Paths: " + svg.size());
-		
+		if(needMask) {
+			svg.add(0, defs);
+		}
 		return svg;
 	}
 	
+	public static StringBuilder createPath(ArrayList<Node> path) {
+		StringBuilder d = new StringBuilder();
+		for (var p : path) {
+			d.append(d.length() == 0? 'M' : 'L');
+			d.append(Strings.toString((p.x-1)*Main.scale));
+			d.append(',');
+			d.append(Strings.toString((p.y-1)*Main.scale));
+			d.append(' ');
+		}
+		d.append('Z');
+		return d;
+	}
+
 	record VecPathArea(ArrayList<Node> path, int rgb, int boundsArea, int minX, int minY, int maxX, int maxY) {}
 	
 }
