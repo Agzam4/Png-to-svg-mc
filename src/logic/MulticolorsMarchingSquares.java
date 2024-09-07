@@ -13,9 +13,10 @@ import java.util.HashMap;
 import java.util.stream.IntStream;
 
 import logic.MarchingSquares.Vec2;
-import logic.MarchingSquares.VecPathArea;
+import logic.SvgConverter.VecPathArea;
 import logic.cases.Case;
 import logic.cases.CornerCase;
+import logic.cases.GeneralYCase;
 import logic.cases.Lcase;
 import logic.cases.PigeonCase;
 import logic.cases.TCase;
@@ -30,15 +31,16 @@ public class MulticolorsMarchingSquares {
 	static final Vec4[][] vecs;
 	static ArrayList<Case> cases = new ArrayList<Case>();
 
-	boolean tCase = true;
-	boolean yCase = true;
-	boolean vCase = true;
-	boolean lCase = true;
-	boolean cornerCase = true;
-	boolean givenamecase2 = true;
-	boolean givenamecase3 = true;
+	public boolean tCase = true;
+	public boolean yCase = true;
+	public boolean vCase = true;
+	public boolean lCase = true;
+	public boolean cornerCase = true;
+	public boolean givenamecase2 = true;
+	public boolean generalYCase = true;
+	@Deprecated 
+	public boolean pigeonCase = false; // Supersized by generalYcase 
 	
-	private boolean warnings = false;
 	public boolean debugImage = new File("debug").exists();
 	
 	static { // Generating cases
@@ -102,8 +104,8 @@ public class MulticolorsMarchingSquares {
 		int scale = 5;
 		if(debugImage) Debug.image(w*2, h*2, scale);
 		
-		grid = new Node[w*2+1][h*2+1];
-		colors = new int[w*2+1][h*2+1];
+		grid = new Node[gridWidth()][gridHeight()];
+		colors = new int[gridWidth()][gridHeight()];
 		// Applying main cases
 		for (int y = 0; y < h; y++) {
 			for (int x = 0; x < w; x++) {
@@ -231,7 +233,8 @@ public class MulticolorsMarchingSquares {
 		}
 		
 		// Sharpen ᛉ-cases
-		if(givenamecase3) PigeonCase.apply(this);
+		if(pigeonCase) PigeonCase.apply(this);
+        if(generalYCase) GeneralYCase.apply(this);
 
 		// Borders
 
@@ -258,6 +261,9 @@ public class MulticolorsMarchingSquares {
 			removeNode(w*2-1, y);
 			removeNode(w*2-2, y);
 		}
+		removeNode(right+2,bottom+2);
+		removeNode(right+1,bottom+2);
+		removeNode(right+2,bottom+1);
 
 		node(left, top+1).unlink(node(left+1, top));
 		node(right,top+1).unlink(node(right-1, top));
@@ -288,6 +294,14 @@ public class MulticolorsMarchingSquares {
 		}
 		Debug.write("debug/tmp-" + save + ".png");
 		return this;
+	}
+
+	public int gridHeight() {
+		return h*2+1;
+	}
+
+	public int gridWidth() {
+		return w*2+1;
 	}
 
 	/**
@@ -553,165 +567,6 @@ public class MulticolorsMarchingSquares {
 		return simple;
 	}
 	
-	public ArrayList<VecPathArea> getSvgPaths() {
-		ArrayList<VecPathArea> paths = new ArrayList<>();
-		
-		boolean[][] used = new boolean[w*2][h*2];
-		
-//		Debug.createFrame();
-		int scale = 5;
-		debug = new BufferedImage(w*2*scale, h*2*scale, BufferedImage.TYPE_INT_RGB);
-		Graphics2D g = (Graphics2D) debug.getGraphics();
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		int lx, ly;
-
-		Vec2 lastEmpty = null;
-		int warnsCount = -3;
-		for (int y = 0; y < h*2-1; y++) {
-			for (int x = 0; x < w*2-1; x++) {
-				if(grid[x][y] == null) {
-					if(used[x][y]) continue;
-					lastEmpty = new Vec2(x, y);
-					continue;
-				}
-				if(grid[x][y].links() != 2) continue;
-				if(grid[x][y].links() > 2) continue;
-				if(lastEmpty != null) {
-					if(warnings && Math.abs(lastEmpty.x() - x) > 1) {
-						if(warnsCount < 0 && warnings) System.err.println("x diff is > 1 : " + lastEmpty.x() + ";" + lastEmpty.y() + " & " + x + ";" + y);
-						warnsCount++;
-						lastEmpty = null;
-						continue;
-					}
-					ArrayList<Node> nodes = new ArrayList<Node>();
-					Node n = grid[x][y];
-					Node next = findNextNode(n, angle(-lastEmpty.x()+x, -lastEmpty.y()+y));
-					lastEmpty = null;
-					lx = x;
-					ly = y;
-					while (true) {
-						if(next == null) break;
-						nodes.add(n);
-						int angle = angle(n.x-next.x, n.y-next.y);
-						if(angle == -1) break;
-						if(next.links() == 2) {
-							Node tmp = next.get(0) == n ? next.get(1) : next.get(0);
-							n = next;
-							next = tmp;
-						} else {
-							n = next;
-							next = findNextNodeBack(next, angle-1);
-						}
-						lx = n.x;
-						ly = n.y;
-						if(next == null) break;
-						if(next == nodes.get(0)) break;
-					}
-					nodes.add(n);
-
-					nodes = simplify(nodes);
-					
-					StringBuilder d = new StringBuilder();
-					int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE;
-					int maxX = 0, maxY = 0;
-					int[] xpoints = new int[nodes.size()], ypoints = new int[nodes.size()];
-					for (int i = 0; i < nodes.size(); i++) {
-						n = nodes.get(i);
-						xpoints[i] = n.x;
-						ypoints[i] = n.y;
-						used[n.x][n.y] = true;
-						d.append(i == 0 ? 'M' : 'L');
-						d.append(Strings.toString((n.x-1)*Main.scale));
-						d.append(',');
-						d.append(Strings.toString((n.y-1)*Main.scale));
-						d.append(' ');
-
-						minX = Math.min(minX, n.x);
-						maxX = Math.max(maxX, n.x);
-
-						minY = Math.min(minY, n.y);
-						maxY = Math.max(maxY, n.y);
-					}
-					d.append('Z');
-					
-					Polygon polygon = new Polygon(xpoints, ypoints, nodes.size()); // to check points color and mark "used"
-					int rgb = rgbs[x/2][y/2];
-
-					// Searching the most frequent color from a shape (TODO: it's bad but working now)
-					HashMap<Integer, Vec1> counter = new HashMap<Integer, Vec1>();
-					int maxCount = 0;
-
-					int area = 0;
-					for (int uy = minY-1; uy <= maxY; uy++) {
-						for (int ux = minX-1; ux <= maxX; ux++) {
-							if(polygon.contains(ux, uy)) {
-								area++;
-								int key = rgbs[(ux+1)/2][(uy-0)/2];
-								Vec1 count = counter.get(key);
-								if(count == null) {
-									count = new Vec1(0);
-									counter.put(key, count);
-								}
-								count.add(1);
-								maxCount = Math.max(maxCount, count.i);
-//								used[ux][uy] = true;
-							}
-						}
-					}
-					
-					for (int key : counter.keySet()) {
-						Vec1 v1 = counter.get(key);
-						if(v1.i == maxCount) {
-							rgb = key;
-							break;
-						}
-					}
-					
-					for (int uy = minY-1; uy <= maxY; uy++) {
-						for (int ux = minX-1; ux <= maxX; ux++) {
-							if(polygon.contains(ux, uy)) {
-//								if(grid[ux][uy] == null) continue;
-								int key = rgbs[(ux)/2][(uy-0)/2];
-								if(key == rgb) used[ux][uy] = true;
-							}
-						}
-					}
-					
-					SvgElement element = new SvgElement("path");
-					element.attribute("d", d);
-//					element.attribute("x", x/2f);
-//					element.attribute("y", y/2f);
-//					element.attribute("width", .5f);
-//					element.attribute("filter", "drop-shadow(1px 1px 1px black)");
-					//element.attribute("fill", Colors.toHex(rgb)); // Colors.toHex(rgbs[x/2][y/2])
-					element.attribute("fill", Colors.toHex(rgb));
-					if(Colors.alpha(rgb) != 255){
-//						element.attribute("fill-opacity", Colors.alpha(rgb));
-					}
-//					if(rgb != 0xFF) {
-//						System.out.println(rgb);
-//					} else {
-//					}
-
-					VecPathArea tobeadded = new VecPathArea(element, minX, maxX, minY, maxY, area);
-
-					if(paths.isEmpty() || !paths.contains(tobeadded)) {
-						if(!d.toString().equals("Z")) {
-							paths.add(tobeadded);
-						}
-					}
-				}
-			}
-		}
-		if(warnings && warnsCount >= 0) System.err.println(warnsCount + " warings hidden");
-//		try {
-//			ImageIO.write(debug, "png", new File("debug.png"));
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-		return paths;
-	}
-
 	public boolean hasNode(int x, int y) {
 		return grid[x][y] != null;
 	}

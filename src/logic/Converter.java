@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 
-import logic.MarchingSquares.VecPathArea;
+import logic.SvgConverter.VecPathArea;
 import main.Main;
 import svg.SvgElement;
 
@@ -101,29 +101,23 @@ public class Converter {
 			return;
 		}
 		
-		ArrayList<VecPathArea> paths = new ArrayList<>();
+		ArrayList<VecPathAreaContainer> paths = new ArrayList<>();
 		
 		colors.entrySet().forEach(e -> {
 			if((e.getKey() & 0xFF) == 0) return;
 			paths.addAll(new MarchingSquares(e.getValue()).colorsMap(colorsMap).create(e.getKey(), save, new Color(e.getKey())).getSvgPaths(e.getKey()));
 		});
 		
+		paths.sort((p1,p2) -> p2.boundsArea() - p1.boundsArea());
 		
-		paths.sort(new Comparator<VecPathArea>() {
-
-			@Override
-			public int compare(VecPathArea p1, VecPathArea p2) {
-				return p2.boundsArea() - p1.boundsArea();
-			}
-		});
 		if(Main.inkscapeMode) {
 			SvgElement layerPaths = new SvgElement("g")
 					.attribute("inkscape:groupmode", "layer")
 					.attribute("inkscape:label", "Paths");
-			for (VecPathArea p : paths) layerPaths.add(p.svg());
+			for (VecPathAreaContainer p : paths) layerPaths.add(p.svg());
 			svg.add(layerPaths);
 		} else {
-			for (VecPathArea p : paths) svg.add(p.svg());
+			for (VecPathAreaContainer p : paths) svg.add(p.svg());
 		}
 		
 		if(Main.sourceImage) {
@@ -202,4 +196,6 @@ public class Converter {
 		}
 		System.out.println(save + " " + w + "x" + h + " | " + bs.length + "bytes " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) + "ms");
 	}
+	
+	record VecPathAreaContainer(SvgElement svg, int minX, int maxX, int minY, int maxY, int boundsArea) {}
 }
