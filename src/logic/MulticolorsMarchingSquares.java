@@ -239,7 +239,7 @@ public class MulticolorsMarchingSquares {
 		for (int x = left; x < right; x++) {
 			node(x, top).link(node(x+1, top));
 			node(x, bottom).link(node(x+1, bottom));
-//			removeNode(x, 0);
+			removeNode(x, 0);
 //			removeNode(x, 1);
 //			removeNode(x, 2);
 			removeNode(x, h*2);
@@ -249,6 +249,9 @@ public class MulticolorsMarchingSquares {
 		for (int y = top; y < bottom; y++) {
 			node(left, y).link(node(left, y+1));
 			node(right, y).link(node(right, y+1));
+			removeNode(0, y);
+			
+			
 			removeNode(w*2, 0);
 			removeNode(w*2, y);
 			removeNode(w*2-1, y);
