@@ -13,7 +13,7 @@ public class Main {
 	 * Settings
 	 */
 	public static boolean multithreads = false;
-	public static boolean inkscapeMode = false;
+	public static boolean inkscapeMode = true;
 	public static boolean changeType = false; // Save all images as TYPE_4BYTE_ABGR, can be enabled in runtime
 	public static boolean grid = false;
 	public static boolean sourceImage = false;

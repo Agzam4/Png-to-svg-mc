@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -136,18 +135,7 @@ public class MulticolorsConverter {
 			return;
 		}
 
-		ArrayList<SvgElement> paths = new ArrayList<SvgElement>();
-		paths.addAll(SvgConverter.getSvgPaths(new MulticolorsMarchingSquares(rgbs).create(save)));
-
-		if(Main.inkscapeMode) {
-			SvgElement layerPaths = new SvgElement("g")
-					.attribute("inkscape:groupmode", "layer")
-					.attribute("inkscape:label", "Paths");
-			for (SvgElement p : paths) layerPaths.add(p);
-			svg.add(layerPaths);
-		} else {
-			for (SvgElement p : paths) svg.add(p);
-		}
+		svg.add(SvgConverter.getSvgPaths(new MulticolorsMarchingSquares(rgbs).create(save)));
 
 		if(Main.sourceImage) {
 			SvgElement image = new SvgElement("image")

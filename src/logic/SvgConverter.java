@@ -11,7 +11,7 @@ public class SvgConverter {
 
 	// TODO: replace atan2
 	
-	public static ArrayList<SvgElement> getSvgPaths(MulticolorsMarchingSquares mc) {
+	public static SvgElement[] getSvgPaths(MulticolorsMarchingSquares mc) {
 		ArrayList<VecPathArea> paths = new ArrayList<>();
 		int pathId = 0;
 		
@@ -139,7 +139,6 @@ public class SvgConverter {
 				element.attribute("stroke-width", Main.stroke + "px");
 			}
 			element.attribute("fill", Colors.toHex(path.rgb));
-			element.attribute("mask", "url(#alpha-mask)");
 			if(Colors.alpha(path.rgb) != 255 && svg.size() > 0) {
 				needMask = true;
 				mask.add(element.copy().attribute("fill", "#000").attribute("stroke-width", null).attribute("stroke", null));
@@ -148,10 +147,16 @@ public class SvgConverter {
 			}
 			if(Colors.alpha(path.rgb) > 0) svg.add(element);
 		}
+		SvgElement group = new SvgElement("g");
 		if(needMask) {
-			svg.add(0, defs);
+			group.attribute("mask", "url(#alpha-mask)");
 		}
-		return svg;
+		if(Main.inkscapeMode) {
+			group.attribute("inkscape:groupmode", "layer");
+			group.attribute("inkscape:label", "Paths");
+		}
+		for (SvgElement p : svg) group.add(p);
+		return needMask ? new SvgElement[] {defs, group} : new SvgElement[] {group};
 	}
 	
 	public static StringBuilder createPath(ArrayList<Node> path) {

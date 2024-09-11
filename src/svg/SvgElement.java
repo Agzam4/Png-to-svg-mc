@@ -100,6 +100,20 @@ public class SvgElement {
 		return this;
 	}
 	
+	/**
+	 * Add all children to element
+	 * @param children - child list
+	 * @return 
+	 * @return self
+	 * @see SvgElement.add
+	 */
+	public SvgElement add(SvgElement... children) {
+		for (int i = 0; i < children.length; i++) {
+			add(children[i]);
+		}
+		return this;
+	}
+	
 	@Override
 	public String toString() {
 		return toString("");
@@ -151,4 +165,5 @@ public class SvgElement {
 		}
 		return copy;
 	}
+	
 }
