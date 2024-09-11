@@ -251,7 +251,6 @@ public class MulticolorsMarchingSquares {
 			node(right, y).link(node(right, y+1));
 			removeNode(0, y);
 			
-			
 			removeNode(w*2, 0);
 			removeNode(w*2, y);
 			removeNode(w*2-1, y);

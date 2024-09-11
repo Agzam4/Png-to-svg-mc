@@ -127,6 +127,7 @@ public class SvgConverter {
 				.attribute("fill", "#fff")
 			);
 		mask.attribute("id", Strings.toString("alpha-mask"));
+		defs.add(mask);
 		boolean needMask = false;
 		
 		for (int i = 0; i < paths.size(); i++) {
@@ -142,10 +143,8 @@ public class SvgConverter {
 			if(Colors.alpha(path.rgb) != 255 && svg.size() > 0) {
 				needMask = true;
 				mask.add(element.copy().attribute("fill", "#000").attribute("stroke-width", null).attribute("stroke", null));
-				defs.add(mask);
 			} else {
 				mask.add(element.copy().attribute("fill", "#fff").attribute("stroke", null));
-				defs.add(mask);
 			}
 			if(Colors.alpha(path.rgb) > 0) svg.add(element);
 		}
