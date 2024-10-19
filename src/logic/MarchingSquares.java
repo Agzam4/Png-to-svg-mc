@@ -494,7 +494,7 @@ public class MarchingSquares {
 		return grid[x][y];
 	}
 	
-	record Vec2(int x, int y) {}
+//	record Vec2(int x, int y) {}
 
 	Node[][] grid;
 	

@@ -33,4 +33,10 @@ public class Vec2 {
 		y = -y;
 		return this;
 	}
+
+	public Vec2 add(Vec2 v) {
+		x += v.x;
+		y += v.y;
+		return this;
+	}
 }

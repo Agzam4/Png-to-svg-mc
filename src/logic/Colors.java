@@ -99,4 +99,9 @@ public class Colors {
 	public static int alpha(int rgba) {
 		return (rgba) & 0xFF;
 	}
+	
+	public static String toDebugHex(int rgb) {
+		Color color = new Color(rgb);
+		return toHex(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+	}
 }

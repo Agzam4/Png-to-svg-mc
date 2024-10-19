@@ -3,9 +3,11 @@
 *.classpath
 *.prefs
 *.svg
+*.png
 /debug
 /h
 /debug
+/source
 *.iml
 /bin/
 /zBlocks

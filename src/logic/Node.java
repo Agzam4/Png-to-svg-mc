@@ -5,6 +5,8 @@ import java.util.ArrayList;
 public class Node {
 
 	public ArrayList<Node> links = new ArrayList<Node>();
+	
+	public ArrayList<Edge> edges = new ArrayList<Edge>();
 
 	public final int x, y;
 	

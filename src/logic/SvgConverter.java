@@ -67,7 +67,7 @@ public class SvgConverter {
 						}
 						corners.add(path.get(path.size()-1));
 						
-						int rgb = mc.rgbs[(n.x+1)/2][(n.y+3)/2];
+						int rgb = 0;//mc.rgbs[(n.x+1)/2][(n.y+3)/2];
 
 						/*
 						 *  Searching the most frequent color: 
