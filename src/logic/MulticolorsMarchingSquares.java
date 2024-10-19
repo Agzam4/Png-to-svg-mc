@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
+import logic.Node.Link;
 import logic.cases.Case;
 import logic.cases.CornerCase;
 import logic.cases.GeneralYCase;
@@ -22,15 +23,15 @@ public class MulticolorsMarchingSquares {
 
 	static final Vec4[][] vecs; // [id 256][lines ...]
 	static final int[][][] vecsColors; // [id 256][lines ...][inner, outer]
+	
 	static ArrayList<Case> cases = new ArrayList<Case>();
-
-	public boolean tCase = false;
-	public boolean yCase = false;
-	public boolean vCase = false;
-	public boolean lCase = false;
-	public boolean cornerCase = false;
-	public boolean givenamecase2 = false;
-	public boolean generalYCase = false;
+	@Deprecated public boolean tCase = false;
+	@Deprecated public boolean yCase = false;
+	@Deprecated public boolean vCase = false;
+	@Deprecated public boolean lCase = false;
+	@Deprecated public boolean cornerCase = false;
+	@Deprecated public boolean givenamecase2 = false;
+	@Deprecated public boolean generalYCase = false;
 	@Deprecated 
 	public boolean pigeonCase = false; // Supersized by generalYcase 
 	
@@ -90,7 +91,6 @@ public class MulticolorsMarchingSquares {
 						float ix = id%16*(2 + 1f/iScale);
 						float iy = id/16*(2 + 1f/iScale);
 						
-//						Debug.image(ix, iy, 10);	
 						Debug.color(colors[i1]);
 						Debug.fillRect(ix,iy, 1, 1);
 						Debug.color(colors[i2]);
@@ -108,7 +108,7 @@ public class MulticolorsMarchingSquares {
 							Vec4 v = vecs[id][vi];
 							if(vecsColors[id] != null && vecsColors[id].length != 0) {
 								for (int i = 0; i <= 1; i++) {
-									Vec4 line = v.copy();
+//									Vec4 line = v.copy();
 									float x1 = ix + v.x1;
 									float x2 = ix + v.x2;
 									float y1 = iy + v.y1;
@@ -124,22 +124,9 @@ public class MulticolorsMarchingSquares {
 									Debug.color(lColors[vecsColors[id][vi][i]]);
 									Debug.line(x1,y1,x2,y2);
 								}
-								System.out.println(Arrays.toString(vecsColors[id][vi]) + "\t" + Arrays.toString(lColors) + "\t" + i1 + " " + i2 + " " + i3 + " " + i4 + "\t#" + id);
+//								System.out.println(Arrays.toString(vecsColors[id][vi]) + "\t" + Arrays.toString(lColors) + "\t" + i1 + " " + i2 + " " + i3 + " " + i4 + "\t#" + id);
 							}
 						}
-//						Debug.image(2, 2, 10);	
-//						Debug.color(colors[i1]);
-//						Debug.fillRect(0, 0, 1, 1);
-//						Debug.color(colors[i2]);
-//						Debug.fillRect(1, 0, 1, 1);
-//						Debug.color(colors[i3]);
-//						Debug.fillRect(0, 1, 1, 1);
-//						Debug.color(colors[i4]);
-//						Debug.fillRect(1, 1, 1, 1);
-//						Debug.color(0,0,0,200);
-//						Debug.fillRect(0,0,2,2);
-//						
-//						Debug.write("debug/frags/frag" + id + ".png");
 					}
 				}
 			}
@@ -175,11 +162,17 @@ public class MulticolorsMarchingSquares {
 			for (int x = 0; x < w; x++) {
 				boolean outY = y+1 >= h;
 				boolean outX = x+1 >= w;
+				int[] srcRgb = new int[] {
+                        rgbs[x][y],
+						outX ? Colors.transparent : rgbs[x+1][y],
+						outY ? Colors.transparent : rgbs[x][y+1],
+						outX || outY ? Colors.transparent : rgbs[x+1][y+1]
+				};
 				int[] mask = createMaskArray(new int[] {
                         rgbs[x][y],
-						outX ? 1 : rgbs[x+1][y],
-						outY ? 1 : rgbs[x][y+1],
-						outX || outY ? 1 : rgbs[x+1][y+1]
+						outX ? Colors.transparent : rgbs[x+1][y],
+						outY ? Colors.transparent : rgbs[x][y+1],
+						outX || outY ? Colors.transparent : rgbs[x+1][y+1]
 				});
 				int[] hasColor = new int[4];
 				for (int i = 0; i < mask.length; i++) {
@@ -187,13 +180,13 @@ public class MulticolorsMarchingSquares {
 				}
 				int colorsCount = IntStream.of(hasColor).sum()-1;
 				int key = toId(mask);
-				Debug.rgb(rgbs[x][y]);
+				Debug.color(Colors.toDebugColor(rgbs[x][y]));
 				Debug.fillRect(x*2, y*2, 1, 1);
-				Debug.rgb(outX ? -1 : rgbs[x+1][y]);
+				Debug.color(Colors.toDebugColor(outX ? -1 : rgbs[x+1][y]));
 				Debug.fillRect(x*2+1, y*2, 1, 1);
-				Debug.rgb(outY ? -1 : rgbs[x][y+1]);
+				Debug.color(Colors.toDebugColor(outY ? -1 : rgbs[x][y+1]));
 				Debug.fillRect(x*2, y*2+1, 1, 1);
-				Debug.rgb(outX || outY ? -1 : rgbs[x+1][y+1]);
+				Debug.color(Colors.toDebugColor(outX || outY ? -1 : rgbs[x+1][y+1]));
 				Debug.fillRect(x*2+1, y*2+1, 1, 1);
 
 				Debug.color(Color.DARK_GRAY);
@@ -207,42 +200,46 @@ public class MulticolorsMarchingSquares {
 					vecs[i] = MulticolorsMarchingSquares.vecs[key][i].copy().add(x*2, y*2);
 					Node n1 = node(vecs[i].x1, vecs[i].y1);
 					Node n2 = node(vecs[i].x2, vecs[i].y2);
-					int rgb1, rgb2;
-					if(n1.diagonal(n2)) {
-						if(n1.x > n2.x) { // Sorting by x
-							n2 = node(vecs[i].x1, vecs[i].y1);
-							n1 = node(vecs[i].x2, vecs[i].y2);
-						}
-						if(n1.x == 0) {
-							
-						}
-						rgb1 = rgb(0,0);
-						rgb2 = rgb(0,0);
-						if(rgb1 == rgb2) {
-							Debug.color(Color.magenta);
-							System.err.println("Rgb sides is same: " + n1 + " to " + n2 
-									+ " (" + Colors.toDebugHex(rgb1) + " | " + Colors.toHex(rgb2) + ") delta: ");
-						}
-					} else {
-						int angle = Geometry.angle(vecs[i].x1, vecs[i].y1, vecs[i].x2, vecs[i].y2);
-						Vec2 center = new Vec2(vecs[i].x1 + vecs[i].x2, vecs[i].y1 + vecs[i].y2); // center of Vec4*2
-						Vec2 side1 = center.copy().add(Geometry.delta(angle+2)); // 2 is 90 degree
-						Vec2 side2 = center.copy().add(Geometry.delta(angle-2));
-						int r = 0;
-						rgb1 = rgb((side1.x+r)/4, (side1.y+r)/4);
-						rgb2 = rgb((side2.y+r)/4, (side2.y+r)/4);
-						if(rgb1 == rgb2) {
-							Debug.color(Color.magenta);
-							Debug.line((side1.x+r/2f)/2f, (side1.y+r/2f)/2f, (side2.x+r/2f)/2f, (side2.y+r/2f)/2f);
-							System.err.println("Rgb sides is same: " + n1 + " to " + n2 
-									+ " (" + Colors.toDebugHex(rgb1) + " | " + Colors.toHex(rgb2) + ") delta: "
-									+ Geometry.delta(angle+2) + " | " + Geometry.delta(angle-2)
-									+ " [" + (side1.x+r)/4f + "][" + (side1.y+r)/4f + "] | [" + (side2.x+r)/4f + "][" + (side2.y+r)/4f + "]\t"
-									+ side1.x/4f + "\t" + side1.y/4f + "\t| " + side2.x/4f + "\t" + side2.y/4f);
-						}
-					}
+					int rgb1 = srcRgb[vecsColors[key][i][0]], rgb2 = srcRgb[vecsColors[key][i][1]];
+//					System.out.println("RGBS: " + Colors.toDebugHex(rgb1) + " | " + Colors.toDebugHex(rgb2) + " | " + vecsColors[key][i][0] + " " + vecsColors[key][i][1] + " | " + Colors.toDebugHex(srcRgb[0]));
+					n1.link(n2, rgb1, rgb2);
+//					n2.link(n1, rgb2, rgb1);
 					
-					n1.link(n2);
+					
+//					if(n1.diagonal(n2)) {
+//						if(n1.x > n2.x) { // Sorting by x
+//							n2 = node(vecs[i].x1, vecs[i].y1);
+//							n1 = node(vecs[i].x2, vecs[i].y2);
+//						}
+//						if(n1.x == 0) {
+//							
+//						}
+//						rgb1 = rgb(0,0);
+//						rgb2 = rgb(0,0);
+//						if(rgb1 == rgb2) {
+//							Debug.color(Color.magenta);
+//							System.err.println("Rgb sides is same: " + n1 + " to " + n2 
+//									+ " (" + Colors.toDebugHex(rgb1) + " | " + Colors.toHex(rgb2) + ") delta: ");
+//						}
+//					} else {
+//						int angle = Geometry.angle(vecs[i].x1, vecs[i].y1, vecs[i].x2, vecs[i].y2);
+//						Vec2 center = new Vec2(vecs[i].x1 + vecs[i].x2, vecs[i].y1 + vecs[i].y2); // center of Vec4*2
+//						Vec2 side1 = center.copy().add(Geometry.delta(angle+2)); // 2 is 90 degree
+//						Vec2 side2 = center.copy().add(Geometry.delta(angle-2));
+//						int r = 0;
+//						rgb1 = rgb((side1.x+r)/4, (side1.y+r)/4);
+//						rgb2 = rgb((side2.y+r)/4, (side2.y+r)/4);
+//						if(rgb1 == rgb2) {
+//							Debug.color(Color.magenta);
+//							Debug.line((side1.x+r/2f)/2f, (side1.y+r/2f)/2f, (side2.x+r/2f)/2f, (side2.y+r/2f)/2f);
+//							System.err.println("Rgb sides is same: " + n1 + " to " + n2 
+//									+ " (" + Colors.toDebugHex(rgb1) + " | " + Colors.toHex(rgb2) + ") delta: "
+//									+ Geometry.delta(angle+2) + " | " + Geometry.delta(angle-2)
+//									+ " [" + (side1.x+r)/4f + "][" + (side1.y+r)/4f + "] | [" + (side2.x+r)/4f + "][" + (side2.y+r)/4f + "]\t"
+//									+ side1.x/4f + "\t" + side1.y/4f + "\t| " + side2.x/4f + "\t" + side2.y/4f);
+//						}
+//					}
+					
 				}
 			}
 		}
@@ -250,6 +247,7 @@ public class MulticolorsMarchingSquares {
 		
 		// Sharpen T-cases
 		if(tCase) TCase.apply(this);
+		/** @Deprecated **/
 		for (int i = 0; i < cases.size(); i++) {
 //			cases.get(i).apply(this);	
 		}
@@ -260,6 +258,7 @@ public class MulticolorsMarchingSquares {
 		// Sharpen "\_/" cases
 		if(cornerCase) CornerCase.apply(this);
 		// Sharpen "|\"-cases
+		/** @Deprecated
 		if(givenamecase2)
 		for (int y = 0; y < h*2+1; y++) {
 			for (int x = 0; x < w*2+1; x++) {
@@ -268,8 +267,8 @@ public class MulticolorsMarchingSquares {
 				if(n == null) continue;
 				if(!(n.links() == 2 || n.links() == 3)) continue;
 
-				Node n1 = n.get(0);
-				Node n2 = n.get(1);
+				Node n1 = n.get(0).target;
+				Node n2 = n.get(1).target;
 
 				/*
 				//TODO
@@ -281,7 +280,7 @@ public class MulticolorsMarchingSquares {
 						n2 = n.get(2);
 					}
 				}
-				*/
+				*
 
 				if(!n.diagonal(n1)) continue;
 				if(!n.diagonal(n2)) continue;
@@ -319,7 +318,7 @@ public class MulticolorsMarchingSquares {
 				ns.link(ns2);
 				ns2.link(n1);
 
-				/**
+				/*
 				 * 		   NS             NS
 				 * 		   |  \           |  \
 				 * 		  NS2  N         NS2  N
@@ -327,9 +326,10 @@ public class MulticolorsMarchingSquares {
 				 * 		  N1    N2       N2    N1
 				 * 		   |      \       |     \
 				 * 		  R1      R2     R2     R1
-				 */
+				 *
 			}
 		}
+		*/
 		
 		// Sharpen ᛉ-cases
 		if(pigeonCase) PigeonCase.apply(this);
@@ -342,52 +342,69 @@ public class MulticolorsMarchingSquares {
 		int right = w*2-3;
 		int bottom = h*2-3;
 		
-		// FIXME: uncomment
-//		for (int x = left; x < right; x++) {
-//			node(x, top).link(node(x+1, top));
-//			node(x, bottom).link(node(x+1, bottom));
-//			removeNode(x, 0);
-//			removeNode(x, h*2);
-//			removeNode(x, h*2-1);
-//			removeNode(x, h*2-2);
-//		}
-//		for (int y = top; y < bottom; y++) {
-//			node(left, y).link(node(left, y+1));
-//			node(right, y).link(node(right, y+1));
-//			removeNode(0, y);
-//			removeNode(w*2, 0);
-//			removeNode(w*2, y);
-//			removeNode(w*2-1, y);
-//			removeNode(w*2-2, y);
-//		}
-//		removeNode(right+2,bottom+2);
-//		removeNode(right+1,bottom+2);
-//		removeNode(right+2,bottom+1);
-//
-//		node(left, top+1).unlink(node(left+1, top));
-//		node(right,top+1).unlink(node(right-1, top));
-//
-//		node(left, bottom-1).unlink(node(left+1, bottom));
-//		node(right,bottom-1).unlink(node(right-1, bottom));
+		// FIXME: colors
+		for (int x = left; x <= w*2; x++) {
+			if(left <= x && x < bottom) {
+				node(x, top).link(node(x+1, top), Colors.transparent, rgbs[Math.min(x/2+1, h-2)][top/2+1]);
+				node(x, bottom).link(node(x+1, bottom), rgbs[Math.min(x/2+1, h-2)][bottom/2], Colors.transparent);
+			}
+			removeNode(x, 0);
+			removeNode(x, h*2);
+			removeNode(x, h*2-1);
+			removeNode(x, h*2-2);
+		}
+		for (int y = top; y <= h*2; y++) {
+			if(top <= y && y < bottom) {
+				node(left, y).link(node(left, y+1), rgbs[left/2+1][Math.min(y/2+1, h-2)], Colors.transparent);
+				node(right, y).link(node(right, y+1), Colors.transparent, rgbs[right/2][Math.min(y/2+1, h-2)]);
+			}
+			removeNode(0, y);
+			removeNode(w*2, 0);
+			removeNode(w*2, y);
+			removeNode(w*2-1, y);
+			removeNode(w*2-2, y);
+		}
+		removeNode(right+2,bottom+2);
+		removeNode(right+1,bottom+2);
+		removeNode(right+2,bottom+1);
+		node(left, top+1).unlink(node(left+1, top));
+		node(right,top+1).unlink(node(right-1, top));
+		node(left, bottom-1).unlink(node(left+1, bottom));
+		node(right,bottom-1).unlink(node(right-1, bottom));
 
 		for (int y = 0; y < gridHeight(); y++) {
 			for (int x = 0; x < gridWidth(); x++) {
 //				g.setColor(new Color(Color.HSBtoRGB(colors[x][y]/5f, 1f, 1f)));
-				Debug.color(255,255,255,100);
+				Debug.color(0,0,0,220);
+				Debug.fillRect(x, y, 1f, 1f);
+				
+				Debug.color(255,255,255,10);
 				Debug.fillRect(x, y, 1f/5f, 1f/5f);
 				Node n = grid[x][y];
 				if(n == null) continue;
-				Debug.color(255,0,0,100);
-				for (var l : n.links) {
-					if(Math.abs(n.x-l.x) > 1) {
+				Debug.color(255,0,0,255);
+				for (Link l : n.getLinks()) {
+					if(Math.abs(n.x-l.target.x) > 1) {
 						Debug.color(0,255,0);
 						System.err.println("Link x size >2: " + n.x + " " + n.y);
 					}
-					if(Math.abs(n.y-l.y) > 1) {
+					if(Math.abs(n.y-l.target.y) > 1) {
 						Debug.color(0,0,255);
 						System.err.println("Link y size >2");
 					}
-					Debug.line(n, l);
+					Debug.color(Colors.toDebugColor(l.rgbr));
+					float x1 = n.x;
+					float y1 = n.y;
+					float x2 = l.target.x;
+					float y2 = l.target.y;
+					double angle = Math.atan2(y1-y2, x1-x2);
+					angle += Math.PI/2f;
+					float delta = 1/5f;
+					x1 += Math.cos(angle)*delta;
+					x2 += Math.cos(angle)*delta;
+					y1 += Math.sin(angle)*delta;
+					y2 += Math.sin(angle)*delta;
+					Debug.line(x1,y1,x2,y2);
 				}
 			}
 		}
@@ -446,7 +463,7 @@ public class MulticolorsMarchingSquares {
 		for (int y = 0; y < h*2; y++) {
 			for (int x = 0; x < w*2; x++) {
 				if(grid[x][y] == null) continue;
-				if(grid[x][y].links.size() != 2) continue;
+				if(grid[x][y].links() != 2) continue;
 				ArrayList<Node> path = new ArrayList<Node>();
 				
 				Node start = grid[x][y];
@@ -459,12 +476,12 @@ public class MulticolorsMarchingSquares {
 						return path;
 					}
 					path.add(c);
-					for (Node link : c.links) {
-						if(link == c) continue;
-						if(link == last) continue;
+					for (Link link : c.getLinks()) {
+						if(link.target == c) continue;
+						if(link.target == last) continue;
 						last = c;
-						c.unlink(link);
-						c = link;
+						c.unlink(link.target);
+						c = link.target;
 						break;
 					}
 					if(c == start) return path;

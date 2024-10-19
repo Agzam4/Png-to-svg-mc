@@ -298,9 +298,9 @@ public class Case {
 				mask[deltaId(tf.x(l), tf.y(l))] = true;
 			}
 
-			for (var l : node.links) {
-				int dx = l.x - node.x;
-				int dy = l.y - node.y;
+			for (var l : node.getLinks()) {
+				int dx = l.target.x - node.x;
+				int dy = l.target.y - node.y;
 				src[deltaId(dx, dy)] = true;
 			}
 			
@@ -328,9 +328,9 @@ public class Case {
 			
 			if(beforeLinks == 1) {
 //				return true;
-				for (var l : node.links) {
-					int dx = l.x - node.x;
-					int dy = l.y - node.y;
+				for (var l : node.getLinks()) {
+					int dx = l.target.x - node.x;
+					int dy = l.target.y - node.y;
 					if(dx == tf.x(ml) && dy == tf.y(ml)) return true;
 				}
 				return false;

@@ -1,20 +1,14 @@
 package logic;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-
-import javax.imageio.ImageIO;
 
 import logic.Converter.VecPathAreaContainer;
 import main.Main;
 import svg.SvgElement;
 
+@Deprecated
+@SuppressWarnings("unused")
 public class MarchingSquares {
 
 	public static boolean drawDebug = false;
@@ -43,129 +37,129 @@ public class MarchingSquares {
 	int rgb = 0;
 	
 	public MarchingSquares create(int rgb, String save, Color color) {
-		this.save = save;
-		this.rgb = rgb;
-		
-		BufferedImage debug = null;
-		if(drawDebug) debug = new BufferedImage(w*scale*2, h*scale*2, BufferedImage.TYPE_INT_RGB);
-		
-		grid = new Node[w*2][h*2];
-		
-		Graphics2D g = drawDebug ? (Graphics2D) debug.getGraphics() : null;
-		if(drawDebug) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		
-		// Creating normal vectors for each pixel
-		for (int y = -1; y < h; y++) {
-			for (int x = -1; x < w; x++) {
-				boolean outY = y < 0 || y+1 >= h;
-				boolean outX = x < 0 || x+1 >= w;
-
-				boolean v1 = (x < 0 || outY) ? false : bs[x][y+1];
-				boolean v2 = (outX || outY) ? false : bs[x+1][y+1];
-				boolean v3 = (outX || y < 0) ? false : bs[x+1][y];
-				boolean v4 = (x < 0 || y < 0) ? false : bs[x][y];
-
-				int key = (v1?1:0) | ((v2?1:0) << 1) | ((v3?1:0) << 2) | ((v4?1:0) << 3);
-
-				Vec4 vec1 = null;
-				Vec4 vec2 = null;
-				
-				switch (key) {
-				case 1 -> vec1 = new Vec4(0,1, 1,2);
-				case 2 -> vec1 = new Vec4(2,1, 1,2);
-				case 3 -> {
-					vec1 = new Vec4(0,1, 1,1); vec2 = new Vec4(1,1, 2,1);
-				}
-				case 4 -> vec1 = new Vec4(1,0, 2,1);
-				case 5 -> {
-					vec1 = new Vec4(0,1, 1,2);
-					vec2 = new Vec4(1,0, 2,1);
-				}
-				case 6 -> {
-					vec1 = new Vec4(1,0, 1,1); vec2 = new Vec4(1,1, 1,2);
-				}
-				case 7 -> vec1 = new Vec4(0,1, 1,0);
-				case 8 -> vec1 = new Vec4(0,1, 1,0);
-				case 9 -> {
-					vec1 = new Vec4(1,0, 1,1); vec2 = new Vec4(1,1, 1,2);
-				}
-				case 10 -> {
-					vec1 = new Vec4(0,1, 1,2);
-					vec2 = new Vec4(1,0, 2,1);
-				}
-				case 11 -> vec1 = new Vec4(1,0, 2,1);
-				case 12 -> {
-					vec1 = new Vec4(0,1, 1,1); vec2 = new Vec4(1,1, 2,1);
-				}
-				case 13 -> vec1 = new Vec4(2,1, 1,2);
-				case 14 -> vec1 = new Vec4(0,1, 1,2);
-				default -> {}
-				}
-
-				if(drawDebug) {
-					g.setStroke(new BasicStroke(scale/5f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
-					g.setColor(Color.darkGray);
-					g.drawRect(x*2*scale, y*2*scale, 2*scale, 2*scale);
-				}
-				
-				if(vec1 == null && vec2 == null) continue; // Do not allow add null
-
-				if(drawDebug) g.setStroke(new BasicStroke(scale/2f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
-				if(vec1 != null) {
-					vec1.add(x*2, y*2);
-					Node a1 = node(vec1.x1, vec1.y1);
-					Node a2 = node(vec1.x2, vec1.y2);
-					a1.link(a2);
-				}
-				if(drawDebug) {
-					g.setColor(color);
-					g.setStroke(new BasicStroke(scale/2f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
-				}
-				if(vec2 != null) {
-					vec2.add(x*2, y*2);
-					
-					Node b1 = node(vec2.x1, vec2.y1);
-					Node b2 = node(vec2.x2, vec2.y2);
-					b1.link(b2);
-				}
-			}
-		}
-		
-
-		if(drawDebug) {
-			g.setColor(Color.white);
-			g.setStroke(new BasicStroke(scale/2f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
-			for (int y = 0; y < h*2; y++) {
-				for (int x = 0; x < w*2; x++) {
-					if(grid[x][y] == null) continue;
-					Node n = grid[x][y];
-					for (Node l : n.links) {
-						g.drawLine(n.x*scale, n.y*scale, l.x*scale, l.y*scale);
-					}
-				}
-			}
-			
-			for (int y = 0; y < h*2; y++) {
-				for (int x = 0; x < w*2; x++) {
-
-					g.setColor(colors[x][y] == null ? Color.darkGray : new Color(colors[x][y]));
-
-					g.fillRect((x)*scale - scale/4, (y)*scale - scale/4, scale/2, scale/2);
-
-				}
-			}
-			g.setColor(color);
-			
-			g.dispose();
-			
-			try {
-				File file = new File("debug/" + save + "-" + color.getRGB()  + ".png");
-				file.mkdirs();
-				ImageIO.write(debug, "png", file);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+//		this.save = save;
+//		this.rgb = rgb;
+//		
+//		BufferedImage debug = null;
+//		if(drawDebug) debug = new BufferedImage(w*scale*2, h*scale*2, BufferedImage.TYPE_INT_RGB);
+//		
+//		grid = new Node[w*2][h*2];
+//		
+//		Graphics2D g = drawDebug ? (Graphics2D) debug.getGraphics() : null;
+//		if(drawDebug) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+//		
+//		// Creating normal vectors for each pixel
+//		for (int y = -1; y < h; y++) {
+//			for (int x = -1; x < w; x++) {
+//				boolean outY = y < 0 || y+1 >= h;
+//				boolean outX = x < 0 || x+1 >= w;
+//
+//				boolean v1 = (x < 0 || outY) ? false : bs[x][y+1];
+//				boolean v2 = (outX || outY) ? false : bs[x+1][y+1];
+//				boolean v3 = (outX || y < 0) ? false : bs[x+1][y];
+//				boolean v4 = (x < 0 || y < 0) ? false : bs[x][y];
+//
+//				int key = (v1?1:0) | ((v2?1:0) << 1) | ((v3?1:0) << 2) | ((v4?1:0) << 3);
+//
+//				Vec4 vec1 = null;
+//				Vec4 vec2 = null;
+//				
+//				switch (key) {
+//				case 1 -> vec1 = new Vec4(0,1, 1,2);
+//				case 2 -> vec1 = new Vec4(2,1, 1,2);
+//				case 3 -> {
+//					vec1 = new Vec4(0,1, 1,1); vec2 = new Vec4(1,1, 2,1);
+//				}
+//				case 4 -> vec1 = new Vec4(1,0, 2,1);
+//				case 5 -> {
+//					vec1 = new Vec4(0,1, 1,2);
+//					vec2 = new Vec4(1,0, 2,1);
+//				}
+//				case 6 -> {
+//					vec1 = new Vec4(1,0, 1,1); vec2 = new Vec4(1,1, 1,2);
+//				}
+//				case 7 -> vec1 = new Vec4(0,1, 1,0);
+//				case 8 -> vec1 = new Vec4(0,1, 1,0);
+//				case 9 -> {
+//					vec1 = new Vec4(1,0, 1,1); vec2 = new Vec4(1,1, 1,2);
+//				}
+//				case 10 -> {
+//					vec1 = new Vec4(0,1, 1,2);
+//					vec2 = new Vec4(1,0, 2,1);
+//				}
+//				case 11 -> vec1 = new Vec4(1,0, 2,1);
+//				case 12 -> {
+//					vec1 = new Vec4(0,1, 1,1); vec2 = new Vec4(1,1, 2,1);
+//				}
+//				case 13 -> vec1 = new Vec4(2,1, 1,2);
+//				case 14 -> vec1 = new Vec4(0,1, 1,2);
+//				default -> {}
+//				}
+//
+//				if(drawDebug) {
+//					g.setStroke(new BasicStroke(scale/5f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
+//					g.setColor(Color.darkGray);
+//					g.drawRect(x*2*scale, y*2*scale, 2*scale, 2*scale);
+//				}
+//				
+//				if(vec1 == null && vec2 == null) continue; // Do not allow add null
+//
+//				if(drawDebug) g.setStroke(new BasicStroke(scale/2f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
+//				if(vec1 != null) {
+//					vec1.add(x*2, y*2);
+//					Node a1 = node(vec1.x1, vec1.y1);
+//					Node a2 = node(vec1.x2, vec1.y2);
+//					a1.link(a2);
+//				}
+//				if(drawDebug) {
+//					g.setColor(color);
+//					g.setStroke(new BasicStroke(scale/2f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
+//				}
+//				if(vec2 != null) {
+//					vec2.add(x*2, y*2);
+//					
+//					Node b1 = node(vec2.x1, vec2.y1);
+//					Node b2 = node(vec2.x2, vec2.y2);
+//					b1.link(b2);
+//				}
+//			}
+//		}
+//		
+//
+//		if(drawDebug) {
+//			g.setColor(Color.white);
+//			g.setStroke(new BasicStroke(scale/2f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
+//			for (int y = 0; y < h*2; y++) {
+//				for (int x = 0; x < w*2; x++) {
+//					if(grid[x][y] == null) continue;
+//					Node n = grid[x][y];
+//					for (Node l : n.links) {
+//						g.drawLine(n.x*scale, n.y*scale, l.x*scale, l.y*scale);
+//					}
+//				}
+//			}
+//			
+//			for (int y = 0; y < h*2; y++) {
+//				for (int x = 0; x < w*2; x++) {
+//
+//					g.setColor(colors[x][y] == null ? Color.darkGray : new Color(colors[x][y]));
+//
+//					g.fillRect((x)*scale - scale/4, (y)*scale - scale/4, scale/2, scale/2);
+//
+//				}
+//			}
+//			g.setColor(color);
+//			
+//			g.dispose();
+//			
+//			try {
+//				File file = new File("debug/" + save + "-" + color.getRGB()  + ".png");
+//				file.mkdirs();
+//				ImageIO.write(debug, "png", file);
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//		}
 		
 		return this;
 	}
@@ -453,34 +447,34 @@ public class MarchingSquares {
 	 * @return next closed path or <code>null<code> if it not found
 	 */
 	private ArrayList<Node> nextPath() {
-		for (int y = 0; y < h*2; y++) {
-			for (int x = 0; x < w*2; x++) {
-				if(grid[x][y] == null) continue;
-				if(grid[x][y].links.size() != 2) continue;
-				ArrayList<Node> path = new ArrayList<Node>();
-				
-				Node start = grid[x][y];
-				
-				Node c = start;
-				Node last = null;
-				while (true) {
-					if(path.contains(c)) {
-						System.err.println("Duplicate");
-						return path;
-					}
-					path.add(c);
-					for (Node link : c.links) {
-						if(link == c) continue;
-						if(link == last) continue;
-						last = c;
-						c.unlink(link);
-						c = link;
-						break;
-					}
-					if(c == start) return path;
-				}
-			}
-		}
+//		for (int y = 0; y < h*2; y++) {
+//			for (int x = 0; x < w*2; x++) {
+//				if(grid[x][y] == null) continue;
+//				if(grid[x][y].links.size() != 2) continue;
+//				ArrayList<Node> path = new ArrayList<Node>();
+//				
+//				Node start = grid[x][y];
+//				
+//				Node c = start;
+//				Node last = null;
+//				while (true) {
+//					if(path.contains(c)) {
+//						System.err.println("Duplicate");
+//						return path;
+//					}
+//					path.add(c);
+//					for (Node link : c.links) {
+//						if(link == c) continue;
+//						if(link == last) continue;
+//						last = c;
+//						c.unlink(link);
+//						c = link;
+//						break;
+//					}
+//					if(c == start) return path;
+//				}
+//			}
+//		}
 		return null;
 	}
 	
@@ -502,42 +496,43 @@ public class MarchingSquares {
 	 * @deprecated
 	 */
 	public String toSvgGroup(StringBuilder svg) {
-		svg.append(
-				"""
-				<g fill="@" stroke-width="0" stroke="#333" stroke-linecap="round" stroke-linejoin="round">
-				""".replaceFirst("@", "rgba(" + color.getRed() + " " + color.getGreen() + " " + color.getBlue() + ")")); //  / 90%
-		
-		while (true) {
-			
-			ArrayList<Node> nodes = nextPath();
-			if(nodes == null) break;
-			
-			System.out.println(++counter + ") Paths: " + nodes.size());
-			
-			ArrayList<Vec2> vpath = new ArrayList<Vec2>();
-			for (Node n : nodes) {
-				vpath.add(new Vec2(n.x, n.y));
-			}
-			
-			vpath = sharpen(vpath);
-			
-			System.out.println(counter + "] sharpen paths: " + nodes.size());
-			
-			vpath = simplify(vpath);
-			
-			svg.append("\n\t<path d=\"");
-			for (int i = 0; i < vpath.size(); i++) {
-				Vec2 n = vpath.get(i);
-				svg.append(i == 0 ? 'M' : 'L');
-				svg.append(n.x);
-				svg.append(',');
-				svg.append(n.y);
-				svg.append(' ');
-			}
-			svg.append("Z\"/>");
-		}
-
-		svg.append("\n</g>\n");
-		return svg.toString();
+//		svg.append(
+//				"""
+//				<g fill="@" stroke-width="0" stroke="#333" stroke-linecap="round" stroke-linejoin="round">
+//				""".replaceFirst("@", "rgba(" + color.getRed() + " " + color.getGreen() + " " + color.getBlue() + ")")); //  / 90%
+//		
+//		while (true) {
+//			
+//			ArrayList<Node> nodes = nextPath();
+//			if(nodes == null) break;
+//			
+//			System.out.println(++counter + ") Paths: " + nodes.size());
+//			
+//			ArrayList<Vec2> vpath = new ArrayList<Vec2>();
+//			for (Node n : nodes) {
+//				vpath.add(new Vec2(n.x, n.y));
+//			}
+//			
+//			vpath = sharpen(vpath);
+//			
+//			System.out.println(counter + "] sharpen paths: " + nodes.size());
+//			
+//			vpath = simplify(vpath);
+//			
+//			svg.append("\n\t<path d=\"");
+//			for (int i = 0; i < vpath.size(); i++) {
+//				Vec2 n = vpath.get(i);
+//				svg.append(i == 0 ? 'M' : 'L');
+//				svg.append(n.x);
+//				svg.append(',');
+//				svg.append(n.y);
+//				svg.append(' ');
+//			}
+//			svg.append("Z\"/>");
+//		}
+//
+//		svg.append("\n</g>\n");
+//		return svg.toString();
+		return null;
 	}
 }

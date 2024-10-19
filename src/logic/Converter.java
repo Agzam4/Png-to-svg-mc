@@ -17,6 +17,7 @@ import javax.imageio.ImageIO;
 import main.Main;
 import svg.SvgElement;
 
+@Deprecated
 public class Converter {
 	
 	public static void converter(File file, String save) {
