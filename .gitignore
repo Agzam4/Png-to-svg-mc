@@ -3,13 +3,13 @@
 *.classpath
 *.prefs
 *.svg
-*.png
 /debug
 /h
 /debug
-/source
+source
 *.iml
 /bin/
 /zBlocks
 /fragments
 /.oldcases
+/source
