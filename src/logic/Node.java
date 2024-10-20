@@ -150,6 +150,11 @@ public class Node {
             break;
         }
 	}
+
+	
+	public int angleTo(Node n) {
+		return Geometry.angle(x, y, n.x, n.y);
+	}
 	
 	/**
 	 * Read only
@@ -184,5 +189,51 @@ public class Node {
 			return "(" + from + ")=>(" + target + ")";
 		}
 	}
+
+	public void sort(int x, int y) {
+		links.sort((l1,l2) -> Double.compare(Math.atan2(l1.target.y - y, l1.target.x - x), Math.atan2(l2.target.y - y, l2.target.x - x)));
+	}
+	
+	public void sort(Node from) {
+		links.sort((l1,l2) -> Double.compare(Math.atan2(l1.target.y - from.y, l1.target.x - from.x), Math.atan2(l2.target.y - from.y, l2.target.x - from.x)));
+	}
+	
+	/**
+	 * @param angle
+	 * @return Link by angle or {@code null} if node not has link with selected angle
+	 * @author Agzam4
+	 */
+	private Link getLinkByAngle(int angle) {
+		for (int i = 0; i < links(); i++) {
+			int linkAngle = angleTo(get(i).target);
+			if(linkAngle == angle) return get(i);
+		}
+		return null;
+	}
+
+	/**
+	 * Searching closest link in positive direction
+	 * @param angle 
+	 * @return
+	 * @author Agzam4
+	 */
+	public Link findLinkForwards(int angle, int checkAnglesAmount) {
+		for (int deltaAngle = 0; deltaAngle < checkAnglesAmount; deltaAngle++) {
+			int searchAngle = (angle+deltaAngle)%Geometry.delta.length;
+			Link l = getLinkByAngle(searchAngle);
+			if(l != null) return l;
+		}
+		return null;
+	}
+
+	public Link findLinkBackwards(int angle, int checkAnglesAmount) {
+		for (int deltaAngle = 0; deltaAngle < checkAnglesAmount; deltaAngle++) {
+			int searchAngle = ((angle-deltaAngle)%Geometry.delta.length+Geometry.delta.length)%Geometry.delta.length;
+			Link l = getLinkByAngle(searchAngle);
+			if(l != null) return l;
+		}
+		return null;
+	}
+
 
 }
