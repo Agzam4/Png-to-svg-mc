@@ -15,7 +15,6 @@ import java.util.function.BiConsumer;
 
 import javax.imageio.ImageIO;
 
-import logic.Geometry;
 import logic.MulticolorsMarchingSquares;
 import logic.Node;
 import logic.Node.Link;
@@ -276,11 +275,22 @@ public class Case {
 		 * @return {@code true} if link valid
 		 */
 		public boolean test(MulticolorsMarchingSquares m, int x, int y, Transforms tf, int d) { // FIXME: checking not all
-			if(!testLinks(m, x, y, tf, d)) return false;
+			if(!testLinks(m, x, y, tf)) return false;
+			
+//			if(x < 1 || y < 1) {
+				System.out.println("[" + d + "] Check at: " + x + " " + y);
+//			}
+//			Debug.line(from, to);
+			
 			for (var l : links) {
-				Debug.color(Color.magenta);
-				if(!l.node.before) continue;
+				System.out.println(" " + d + "  Check at: " + (x + tf.x(l)) + " " + (y + tf.y(l)));
+				if(!l.node.before) {
+					if(!m.hasNodePosition(x + tf.x(l), y + tf.y(l))) return false;
+					continue;
+				}
 				if(l.node.depth > depth) {
+					Debug.color(Color.yellow);
+					Debug.line(x, y, x + tf.x(l), y + tf.y(l));
 					if(!l.node.test(m, x + tf.x(l), y + tf.y(l), tf, d+1)) {
 //						g.setColor(Color.magenta);
 //						g.drawLine(x*gscl, y*gscl, (x+tf.x(l))*gscl, (y+tf.y(l))*gscl);
@@ -291,10 +301,13 @@ public class Case {
 					}
 				}
 			}
+			Debug.color(Color.cyan);
+			Debug.fillOval(x, y, .5f, .5f);
 			return true;
 		}
 
-		public boolean testLinks(MulticolorsMarchingSquares m, int x, int y, Transforms tf, int d) {
+		public boolean testLinks(MulticolorsMarchingSquares m, int x, int y, Transforms tf) {
+			if(!m.hasNodePosition(x, y)) return false;
 			if(m.hasNode(x, y) != before) {
 //				System.out.println("Wrong node");
 //				g.fillRect(x*gscl - gscl/2 + gx, y*gscl - gscl/2 + gy, 1, 1);
@@ -309,6 +322,8 @@ public class Case {
 				if(!l.type.before) continue;
 				beforeLinks++;
 				ml = l;
+				Debug.color(Color.cyan);
+				Debug.line(x, y, x + tf.x(l), y + tf.y(l));
 //				if(!m.hasNodePosition(tf.x(l), tf.y(l))) continue;
 				mask[deltaId(tf.x(l), tf.y(l))] = true;
 			}
@@ -318,28 +333,6 @@ public class Case {
 				int dy = l.target.y - node.y;
 				src[deltaId(dx, dy)] = true;
 			});
-			
-//			if(d > 0) {
-//				int id = 0;
-//				g.setColor(new Color(0,255,255,50));
-//				for (int gy = 0; gy < 3; gy++) {
-//					for (int gx = 0; gx < 3; gx++) {
-//						if(mask[id]) g.setColor(new Color(0,255,0,50));
-//						else g.setColor(new Color(255,0,0,50));
-//						g.fillRect(x*gscl - gscl/2 + gx + 3, y*gscl - gscl/2 + gy + 3, 1, 1);
-//						id++;
-//					}
-//				}
-//				id = 0;
-//				for (int gy = 0; gy < 3; gy++) {
-//					for (int gx = 0; gx < 3; gx++) {
-//						if(src[id]) g.setColor(new Color(0,0,255,50));
-//						else g.setColor(new Color(255,0,0,50));
-//						g.fillRect(x*gscl - gscl/2 + gx, y*gscl - gscl/2 + gy, 1, 1);
-//						id++;
-//					}
-//				}
-//			}
 			
 			if(beforeLinks == 1) {
 				for (var l : node.getLinks()) {
@@ -351,33 +344,9 @@ public class Case {
 			}
 			for (int i = 0; i < mask.length; i++) {
 				if(src[i] != mask[i]) {
-//					System.out.println("Wrong mask");
 					return false;
 				}
 			}
-
-//			if(d == 0) {
-//				int id = 0;
-//				g.setColor(new Color(0,255,255,25));
-//				for (int gy = 0; gy < 3; gy++) {
-//					for (int gx = 0; gx < 3; gx++) {
-//						if(mask[id]) g.setColor(new Color(0,255,0,25));
-//						else g.setColor(new Color(255,0,0,25));
-//						g.fillRect(x*gscl - gscl/2 + gx + 3, y*gscl - gscl/2 + gy + 3, 1, 1);
-//						id++;
-//					}
-//				}
-//				id = 0;
-//				for (int gy = 0; gy < 3; gy++) {
-//					for (int gx = 0; gx < 3; gx++) {
-//						if(src[id]) g.setColor(new Color(0,0,255,25));
-//						else g.setColor(new Color(255,0,0,25));
-//						g.fillRect(x*gscl - gscl/2 + gx, y*gscl - gscl/2 + gy, 1, 1);
-//						id++;
-//					}
-//				}
-//			}
-			
 			return true;
 		}
 
@@ -405,15 +374,33 @@ public class Case {
 
 	}
 	
+	private boolean isValid(MulticolorsMarchingSquares m, int x, int y, Transforms transform) {
+		for (NodeMask n : nodes) {
+			if(!n.before) continue;
+			int nx = x + transform.x(n.x, n.y);
+			int ny = y + transform.y(n.x, n.y);
+//			System.out.println(" Check at: " + (nx) + " " + (ny));
+			if(!n.testLinks(m, nx, ny, transform)) {
+				return false;
+			}
+//			for (MaskLink ml : n.links) {
+//				Node to = mms.grid[nx + transform.x(ml)][ny + transform.y(ml)];
+//				
+//			}
+		}
+		
+		return true;
+	}
+	
 	public void apply(MulticolorsMarchingSquares mms) {
 //		Debug.image(mms.gridWidth(), mms.gridHeight(), 10);
 		for (int y = 0; y < mms.gridHeight(); y++) {
 			for (int x = 0; x < mms.gridWidth(); x++) {
 				if(mms.grid[x][y] == null) continue;
 				for (Transforms transform : Transforms.values()) {
-					try { // TODO: remove try/catch
-						if(root.test(mms, x, y, transform, 0)) {
-							System.out.println("Found at " + x + ";" + y + " " + transform);
+//					System.out.println("Transform: " + transform);
+//					try { // TODO: remove try/catch
+						if(isValid(mms, x, y, transform)) {//root.test(mms, x, y, transform, 0)) {
 							ArrayList<LinkPromise> promises = new ArrayList<Case.LinkPromise>();
 							for (NodeMask n : nodes) {
 								int nx = x + transform.x(n.x, n.y);
@@ -432,9 +419,9 @@ public class Case {
 										if(to == null) to = mms.node(nx + transform.x(ml), ny + transform.y(ml));
 //										from.link(to);
 										promises.add(new LinkPromise(from, to));
-										Debug.color(Color.cyan);
-										Debug.fillOval(from, .5f);
-										Debug.line(from, to);
+//										Debug.color(Color.cyan);
+//										Debug.fillOval(from, .5f);
+//										Debug.line(from, to);
 									} else if (to != null) {
 										from.unlink(to);
 									}
@@ -447,64 +434,52 @@ public class Case {
 									int angle = 0;//p.from.angleTo(p.to);
 									angle = p.from.angleTo(p.to);
 									if(p.from.links() == 0 && p.to.links() == 0) continue;
-
 									if(!p.hasRgbR) {
 										Link next = p.from.findLinkBackwards(angle, 5); // make it by step?
 										if(next != null) {
-											p.rgbr(next.rgbl);//new Color(255,255,255,255).getRGB()); // next.rgbl
+											p.rgbr(next.rgbl);
 											changes = true;
 										}
 									}
 									if(!p.hasRgbL) {
 										Link next = p.from.findLinkForwards(angle, 5);
 										if(next != null) {
-											p.rgbl(next.rgbr);//new Color(255,255,255,255).getRGB());
+											p.rgbl(next.rgbr);
 											changes = true;
 										}
 									}
-									angle = p.to.angleTo(p.from);
-//									if(!p.hasRgbR) {
-//										Link next = p.to.findLinkBackwards(angle, 5);
-//										if(next != null) {
-//											p.rgbr(new Color(255,255,255,255).getRGB());
-//											changes = true;
-//										}
-//									}
-//									if(!p.hasRgbL) {
-//										Link next = p.from.findLinkBackwards(angle, 8);
-//										if(next != null) {
-//											p.rgbl(next.rgbl);
-//											changes = true;
-//										}
-//									}
 									if(p.hasRgbR && p.hasRgbL) {
 										p.from.link(p.to, p.rgbr, p.rgbl);
 										promises.remove(i);
 										break;
 									}
-									
-//									if(p.hasRgbR) {
-//										p.from.link(p.to, p.rgbr, p.rgbl);
-//										promises.remove(i);
-//										break;
-//									}
 								}
 								if(promises.size() <= 0) break;
-//								System.out.println("Promises: " + promises);
 								if(!changes) {
-									System.err.println("No changes: " + promises);
+									System.err.println("No changes at case: " + promises);
 									break;
 								}
 							}
-							
-							for (LinkPromise p : promises) {
-								p.from.link(p.to, p.rgbr, p.rgbl);
+							if(promises.size() > 0) {
+								System.err.println("WARN: " + promises.size() + " wrong links");
+								for (LinkPromise p : promises) {
+									p.from.link(p.to, p.rgbr, p.rgbl);
+								}
 							}
 							break;
 						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+//						System.out.println("Case " + name + " applyed!");
+//					} catch (Exception e) {
+//						System.err.println("Center: " + x + " " + y);
+//						for (NodeMask n : nodes) {
+//							System.err.println("> " + (x + n.x) + " " + (y + n.y) + " " + n.before + " " + n.after);
+//							for (var l : n.links) {
+//								System.err.println("  " + (x + n.x + l.dx) + " " + (y + n.y + l.dy));
+//							}
+//						}
+//						e.printStackTrace();
+////						System.exit(0);
+//					}
 				}
 			}
 		}

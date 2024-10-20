@@ -479,7 +479,6 @@ public class MulticolorsMarchingSquares {
 			points[3] = points[2] - points[3];
 			points[2] -= points[3];
 			for (Vec4 v : vs) v.flipX(2).reverse();
-			System.out.println("Ids before: " + Arrays.toString(colorIds));
 			for (Vec2 cid : colorIds) {
 				// x and y used as arrray (it not axis)
 				if(cid.x == 0) cid.x = 1; else
@@ -491,7 +490,6 @@ public class MulticolorsMarchingSquares {
 				if(cid.y == 2) cid.y = 3; else 
 				if(cid.y == 3) cid.y = 2; 
 			}
-			System.out.println("Ids After: " + Arrays.toString(colorIds));
 		}
 		if(flipY) {
 			points[0] += points[2];
