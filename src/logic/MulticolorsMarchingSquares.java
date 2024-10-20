@@ -1,5 +1,6 @@
 package logic;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -366,6 +367,7 @@ public class MulticolorsMarchingSquares {
 					y1 += Math.sin(angle)*delta;
 					y2 += Math.sin(angle)*delta;
 					Debug.line(x1,y1,x2,y2);
+					Debug.fillOval(x1, y1, 2f/5f, 2f/5f);
 				});
 			}
 		}

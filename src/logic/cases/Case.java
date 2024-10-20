@@ -275,7 +275,7 @@ public class Case {
 		 * @param d - depth
 		 * @return {@code true} if link valid
 		 */
-		public boolean test(MulticolorsMarchingSquares m, int x, int y, Transforms tf, int d) {
+		public boolean test(MulticolorsMarchingSquares m, int x, int y, Transforms tf, int d) { // FIXME: checking not all
 			if(!testLinks(m, x, y, tf, d)) return false;
 			for (var l : links) {
 				Debug.color(Color.magenta);
@@ -406,6 +406,7 @@ public class Case {
 	}
 	
 	public void apply(MulticolorsMarchingSquares mms) {
+//		Debug.image(mms.gridWidth(), mms.gridHeight(), 10);
 		for (int y = 0; y < mms.gridHeight(); y++) {
 			for (int x = 0; x < mms.gridWidth(); x++) {
 				if(mms.grid[x][y] == null) continue;
@@ -413,6 +414,7 @@ public class Case {
 					try { // TODO: remove try/catch
 						if(root.test(mms, x, y, transform, 0)) {
 							System.out.println("Found at " + x + ";" + y + " " + transform);
+							ArrayList<LinkPromise> promises = new ArrayList<Case.LinkPromise>();
 							for (NodeMask n : nodes) {
 								int nx = x + transform.x(n.x, n.y);
 								int ny = y + transform.y(n.x, n.y);
@@ -424,46 +426,79 @@ public class Case {
 									continue;
 								}
 								
-								ArrayList<LinkPromise> promises = new ArrayList<Case.LinkPromise>();
 								for (MaskLink ml : n.links) {
 									Node to = mms.grid[nx + transform.x(ml)][ny + transform.y(ml)];
 									if(ml.type.after) {
 										if(to == null) to = mms.node(nx + transform.x(ml), ny + transform.y(ml));
 //										from.link(to);
-										promises.add(new LinkPromise(from, to, true));
-										promises.add(new LinkPromise(from, to, false));
+										promises.add(new LinkPromise(from, to));
+										Debug.color(Color.cyan);
+										Debug.fillOval(from, .5f);
+										Debug.line(from, to);
 									} else if (to != null) {
 										from.unlink(to);
 									}
 								}
-								
-								while (true) {
-									boolean changes = false;
-									for (int i = 0; i < promises.size(); i++) {
-										LinkPromise p = promises.get(i);
-										int angle = p.from.angleTo(p.to);
-										
-										Link next = p.side ? p.to.findLinkForwards(angle, 4) : p.to.findLinkBackwards(angle, 4);
-										if(next == null) continue;
-//										Link prev = p.to.findLinkBackwards(angle, 4);
-//										if(prev == null) continue;
+							}
+							while (true) {
+								boolean changes = false;
+								for (int i = 0; i < promises.size(); i++) {
+									LinkPromise p = promises.get(i);
+									int angle = 0;//p.from.angleTo(p.to);
+									angle = p.from.angleTo(p.to);
+									if(p.from.links() == 0 && p.to.links() == 0) continue;
 
-										int rgb1 = next.rgbr;
-
-										p.from.link(p.to, rgb1, rgb1);
-										promises.remove(i);
-										changes = true;
-										break;
+									if(!p.hasRgbR) {
+										Link next = p.from.findLinkBackwards(angle, 5); // make it by step?
+										if(next != null) {
+											p.rgbr(next.rgbl);//new Color(255,255,255,255).getRGB()); // next.rgbl
+											changes = true;
+										}
 									}
-									System.out.println("Promises: " + promises);
-									if(!changes) {
-										System.err.println("No changes");
+									if(!p.hasRgbL) {
+										Link next = p.from.findLinkForwards(angle, 5);
+										if(next != null) {
+											p.rgbl(next.rgbr);//new Color(255,255,255,255).getRGB());
+											changes = true;
+										}
+									}
+									angle = p.to.angleTo(p.from);
+//									if(!p.hasRgbR) {
+//										Link next = p.to.findLinkBackwards(angle, 5);
+//										if(next != null) {
+//											p.rgbr(new Color(255,255,255,255).getRGB());
+//											changes = true;
+//										}
+//									}
+//									if(!p.hasRgbL) {
+//										Link next = p.from.findLinkBackwards(angle, 8);
+//										if(next != null) {
+//											p.rgbl(next.rgbl);
+//											changes = true;
+//										}
+//									}
+									if(p.hasRgbR && p.hasRgbL) {
+										p.from.link(p.to, p.rgbr, p.rgbl);
+										promises.remove(i);
 										break;
 									}
 									
-									if(promises.size() <= 0) break;
+//									if(p.hasRgbR) {
+//										p.from.link(p.to, p.rgbr, p.rgbl);
+//										promises.remove(i);
+//										break;
+//									}
 								}
-								
+								if(promises.size() <= 0) break;
+//								System.out.println("Promises: " + promises);
+								if(!changes) {
+									System.err.println("No changes: " + promises);
+									break;
+								}
+							}
+							
+							for (LinkPromise p : promises) {
+								p.from.link(p.to, p.rgbr, p.rgbl);
 							}
 							break;
 						}
@@ -473,9 +508,34 @@ public class Case {
 				}
 			}
 		}
+//		Debug.write("debug/cases/" + name + ".png");
 	}
 	
-	record LinkPromise(Node from, Node to, boolean side) {
+	class LinkPromise {
 		
+		final Node from, to;
+		boolean hasRgbL, hasRgbR;
+		int rgbl = Color.magenta.getRGB(), rgbr = Color.magenta.getRGB();
+		int stepR, stepL;
+		
+		public LinkPromise(Node from, Node to) {
+			this.from = from;
+			this.to = to;
+		}
+
+		public void rgbr(int rgbr) {
+			this.rgbr = rgbr;
+			hasRgbR = true;
+		}
+
+		public void rgbl(int rgbl) {
+			this.rgbl = rgbl;
+			hasRgbL = true;
+		}
+
+		@Override
+		public String toString() {
+			return "(" + from + ")=>(" + to + ")";
+		}
 	}
 }

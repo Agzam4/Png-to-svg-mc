@@ -73,13 +73,17 @@ public class Debug {
 		color(new Color(r, g, b));
 	}
 
-	public static void fillOval(int x, int y, float w, float h) {
+	public static void fillOval(float x, float y, float w, float h) {
 		if(g == null) return;
 		g.fillOval((int) (x*scl - w*scl/2), (int) (y*scl - h*scl/2), (int) (w*scl), (int) (h*scl));
 	}
 
 	public static void fillOval(Node n) {
 		fillOval(n.x, n.y, 1, 1);
+	}
+
+	public static void fillOval(Node n, float size) {
+		fillOval(n.x, n.y, size, size);
 	}
 
 	public static void fillRect(float x, float y, float w, float h) {
