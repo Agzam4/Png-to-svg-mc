@@ -76,7 +76,7 @@ public class SvgConverter {
 						 *  right of left links
 						 *  left of right links
 						 *  of shape 
-						 *  (FIXME: in theory it can be broken by cases)
+						 *  (FIXED: in theory it can be broken by cases)
 						 */
 //						HashMap<Integer, Vec1> counter = new HashMap<Integer, Vec1>();
 //						int maxCount = 0;

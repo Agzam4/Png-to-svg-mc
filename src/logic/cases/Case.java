@@ -12,6 +12,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.BiConsumer;
+
+import javax.imageio.ImageIO;
+
 import logic.MulticolorsMarchingSquares;
 import logic.Node;
 import logic.Vec2;
@@ -184,7 +187,7 @@ public class Case {
 			});
 		}
 		
-//		ImageIO.write(debug, "png", new File(file.getName() + ".png"));
+		ImageIO.write(debug, "png", new File("debug/cases/" + file.getName() + ".png"));
 		
 		System.out.println("Case '" + name + "' loaded: root is " + root);
 //		int maxKey = 0;
@@ -218,12 +221,12 @@ public class Case {
 //			nodes++;
 		}
 		
-		public MaskTypes type() {
-			for (MaskTypes t : MaskTypes.values()) {
-				if(t.before == before && t.after == after) return t;
-			}
-			return null;
-		}
+//		public MaskTypes type() {
+//			for (MaskTypes t : MaskTypes.values()) {
+//				if(t.before == before && t.after == after) return t;
+//			}
+//			return null;
+//		}
 
 		public void rawLink(int dx, int dy, MaskTypes type) {
 			links.add(new MaskLink(dx, dy, type));
@@ -261,6 +264,15 @@ public class Case {
 			return "(" + before + ", " + x + ", " + y + ")";
 		}
 
+		/**
+		 * Validation of mask
+		 * @param m
+		 * @param x - x-position of current mask node
+		 * @param y - y-position of current mask node
+		 * @param tf - Transform of case
+		 * @param d - depth
+		 * @return {@code true} if link valid
+		 */
 		public boolean test(MulticolorsMarchingSquares m, int x, int y, Transforms tf, int d) {
 			if(!testLinks(m, x, y, tf, d)) return false;
 			for (var l : links) {
@@ -295,14 +307,15 @@ public class Case {
 				if(!l.type.before) continue;
 				beforeLinks++;
 				ml = l;
+//				if(!m.hasNodePosition(tf.x(l), tf.y(l))) continue;
 				mask[deltaId(tf.x(l), tf.y(l))] = true;
 			}
 
-			for (var l : node.getLinks()) {
+			node.eachLink(l -> {
 				int dx = l.target.x - node.x;
 				int dy = l.target.y - node.y;
 				src[deltaId(dx, dy)] = true;
-			}
+			});
 			
 //			if(d > 0) {
 //				int id = 0;
@@ -327,7 +340,6 @@ public class Case {
 //			}
 			
 			if(beforeLinks == 1) {
-//				return true;
 				for (var l : node.getLinks()) {
 					int dx = l.target.x - node.x;
 					int dy = l.target.y - node.y;
@@ -335,9 +347,6 @@ public class Case {
 				}
 				return false;
 			}
-			
-			
-			
 			for (int i = 0; i < mask.length; i++) {
 				if(src[i] != mask[i]) {
 //					System.out.println("Wrong mask");
@@ -393,45 +402,39 @@ public class Case {
 		}
 
 	}
-
+	
 	public void apply(MulticolorsMarchingSquares mms) {
-		for (int y = 0; y < mms.h*2+1; y++) {
-			for (int x = 0; x < mms.w*2+1; x++) {
+		for (int y = 0; y < mms.gridHeight(); y++) {
+			for (int x = 0; x < mms.gridWidth(); x++) {
 				if(mms.grid[x][y] == null) continue;
 				for (Transforms transform : Transforms.values()) {
-					if(root.test(mms, x, y, transform, 0)) {
-						for (NodeMask n : nodes) {
-							int nx = x + transform.x(n.x, n.y);
-							int ny = y + transform.y(n.x, n.y);
-							Node from = mms.grid[nx][ny];
-							if(n.after) {
-								if(from == null) from = mms.node(nx, ny);
-							} else {
-								if(from != null) mms.removeNode(nx, ny);
-								continue;
-							}
-							for (MaskLink ml : n.links) {
-								Node to = mms.grid[nx + transform.x(ml)][ny + transform.y(ml)];
-								if(ml.type.after) {
-									if(to == null) to = mms.node(nx + transform.x(ml), ny + transform.y(ml));
-									from.link(to);
-								} else if (to != null) {
-									from.unlink(to);
+					try { // TODO: remove try/catch
+						if(root.test(mms, x, y, transform, 0)) {
+							System.out.println("Found at " + x + ";" + y + " " + transform);
+							for (NodeMask n : nodes) {
+								int nx = x + transform.x(n.x, n.y);
+								int ny = y + transform.y(n.x, n.y);
+								Node from = mms.grid[nx][ny];
+								if(n.after) {
+									if(from == null) from = mms.node(nx, ny);
+								} else {
+									if(from != null) mms.removeNode(nx, ny);
+									continue;
+								}
+								for (MaskLink ml : n.links) {
+									Node to = mms.grid[nx + transform.x(ml)][ny + transform.y(ml)];
+									if(ml.type.after) {
+										if(to == null) to = mms.node(nx + transform.x(ml), ny + transform.y(ml));
+										from.link(to);
+									} else if (to != null) {
+										from.unlink(to);
+									}
 								}
 							}
-//							int nx = x + n.x;
-//							int ny = y + n.y;
-//							if(n.after) {
-//								Node node = mms.node(nx, ny);
-//								for (MaskLink ml : n.links) {
-//									
-//								}
-//							} else {
-//								mms.removeNode(nx, ny);
-//							}
+							break;
 						}
-//						System.out.println("Case found: " + name);
-						break;
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
 				}
 			}

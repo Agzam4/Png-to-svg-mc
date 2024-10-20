@@ -32,8 +32,7 @@ public class MulticolorsMarchingSquares {
 	@Deprecated public boolean cornerCase = false;
 	@Deprecated public boolean givenamecase2 = false;
 	@Deprecated public boolean generalYCase = false;
-	@Deprecated 
-	public boolean pigeonCase = false; // Supersized by generalYcase 
+	@Deprecated public boolean pigeonCase = false; // Supersized by generalYcase 
 	
 	public boolean debugImage = new File("debug").exists();
 	
@@ -201,45 +200,7 @@ public class MulticolorsMarchingSquares {
 					Node n1 = node(vecs[i].x1, vecs[i].y1);
 					Node n2 = node(vecs[i].x2, vecs[i].y2);
 					int rgb1 = srcRgb[vecsColors[key][i][0]], rgb2 = srcRgb[vecsColors[key][i][1]];
-//					System.out.println("RGBS: " + Colors.toDebugHex(rgb1) + " | " + Colors.toDebugHex(rgb2) + " | " + vecsColors[key][i][0] + " " + vecsColors[key][i][1] + " | " + Colors.toDebugHex(srcRgb[0]));
 					n1.link(n2, rgb1, rgb2);
-//					n2.link(n1, rgb2, rgb1);
-					
-					
-//					if(n1.diagonal(n2)) {
-//						if(n1.x > n2.x) { // Sorting by x
-//							n2 = node(vecs[i].x1, vecs[i].y1);
-//							n1 = node(vecs[i].x2, vecs[i].y2);
-//						}
-//						if(n1.x == 0) {
-//							
-//						}
-//						rgb1 = rgb(0,0);
-//						rgb2 = rgb(0,0);
-//						if(rgb1 == rgb2) {
-//							Debug.color(Color.magenta);
-//							System.err.println("Rgb sides is same: " + n1 + " to " + n2 
-//									+ " (" + Colors.toDebugHex(rgb1) + " | " + Colors.toHex(rgb2) + ") delta: ");
-//						}
-//					} else {
-//						int angle = Geometry.angle(vecs[i].x1, vecs[i].y1, vecs[i].x2, vecs[i].y2);
-//						Vec2 center = new Vec2(vecs[i].x1 + vecs[i].x2, vecs[i].y1 + vecs[i].y2); // center of Vec4*2
-//						Vec2 side1 = center.copy().add(Geometry.delta(angle+2)); // 2 is 90 degree
-//						Vec2 side2 = center.copy().add(Geometry.delta(angle-2));
-//						int r = 0;
-//						rgb1 = rgb((side1.x+r)/4, (side1.y+r)/4);
-//						rgb2 = rgb((side2.y+r)/4, (side2.y+r)/4);
-//						if(rgb1 == rgb2) {
-//							Debug.color(Color.magenta);
-//							Debug.line((side1.x+r/2f)/2f, (side1.y+r/2f)/2f, (side2.x+r/2f)/2f, (side2.y+r/2f)/2f);
-//							System.err.println("Rgb sides is same: " + n1 + " to " + n2 
-//									+ " (" + Colors.toDebugHex(rgb1) + " | " + Colors.toHex(rgb2) + ") delta: "
-//									+ Geometry.delta(angle+2) + " | " + Geometry.delta(angle-2)
-//									+ " [" + (side1.x+r)/4f + "][" + (side1.y+r)/4f + "] | [" + (side2.x+r)/4f + "][" + (side2.y+r)/4f + "]\t"
-//									+ side1.x/4f + "\t" + side1.y/4f + "\t| " + side2.x/4f + "\t" + side2.y/4f);
-//						}
-//					}
-					
 				}
 			}
 		}
@@ -249,7 +210,7 @@ public class MulticolorsMarchingSquares {
 		if(tCase) TCase.apply(this);
 		/** @Deprecated **/
 		for (int i = 0; i < cases.size(); i++) {
-//			cases.get(i).apply(this);	
+			cases.get(i).apply(this);	
 		}
 		// Sharpen Y-cases
 		if(yCase) YCase.apply(this);
@@ -383,7 +344,7 @@ public class MulticolorsMarchingSquares {
 				Node n = grid[x][y];
 				if(n == null) continue;
 				Debug.color(255,0,0,255);
-				for (Link l : n.getLinks()) {
+				n.eachLink(l -> {
 					if(Math.abs(n.x-l.target.x) > 1) {
 						Debug.color(0,255,0);
 						System.err.println("Link x size >2: " + n.x + " " + n.y);
@@ -405,7 +366,7 @@ public class MulticolorsMarchingSquares {
 					y1 += Math.sin(angle)*delta;
 					y2 += Math.sin(angle)*delta;
 					Debug.line(x1,y1,x2,y2);
-				}
+				});
 			}
 		}
 		Debug.write("debug/tmp-" + save + ".png");
@@ -615,6 +576,12 @@ public class MulticolorsMarchingSquares {
 	
 	public boolean hasNode(int x, int y) {
 		return grid[x][y] != null;
+	}
+
+	public boolean hasNodePosition(int x, int y) {
+		if(x < 0 || y < 0) return false;
+		if(x >= gridWidth() || y >= gridHeight()) return false;
+		return true;
 	}
 
 }

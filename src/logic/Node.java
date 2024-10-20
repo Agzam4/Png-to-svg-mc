@@ -2,6 +2,7 @@ package logic;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.function.Consumer;
 
 public class Node {
 
@@ -150,9 +151,19 @@ public class Node {
         }
 	}
 	
+	/**
+	 * Read only
+	 * @return
+	 */
 	@Deprecated
 	public ArrayList<Link> getLinks() {
 		return links;
+	}
+	
+	public void eachLink(Consumer<Link> cons) {
+		for (int i = 0; i < links.size(); i++) {
+			cons.accept(links.get(i));
+		}
 	}
 	
 	public class Link {
