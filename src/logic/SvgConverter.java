@@ -21,7 +21,8 @@ public class SvgConverter {
 				if(mc.grid[x][y] == null) continue;
 				Node from = mc.grid[x][y];
 				visited[x][y] = new boolean[from.links()];
-				from.getLinks().sort((l1,l2) -> Double.compare(Math.atan2(l1.target.y - from.y, l1.target.x - from.x), Math.atan2(l2.target.y - from.y, l2.target.x - from.x)));
+				from.sort(from);
+//				from.getLinks().sort();
 			}
 		}
 

@@ -15,8 +15,10 @@ import java.util.function.BiConsumer;
 
 import javax.imageio.ImageIO;
 
+import logic.Geometry;
 import logic.MulticolorsMarchingSquares;
 import logic.Node;
+import logic.Node.Link;
 import logic.Vec2;
 import main.Debug;
 
@@ -421,15 +423,47 @@ public class Case {
 									if(from != null) mms.removeNode(nx, ny);
 									continue;
 								}
+								
+								ArrayList<LinkPromise> promises = new ArrayList<Case.LinkPromise>();
 								for (MaskLink ml : n.links) {
 									Node to = mms.grid[nx + transform.x(ml)][ny + transform.y(ml)];
 									if(ml.type.after) {
 										if(to == null) to = mms.node(nx + transform.x(ml), ny + transform.y(ml));
-										from.link(to);
+//										from.link(to);
+										promises.add(new LinkPromise(from, to, true));
+										promises.add(new LinkPromise(from, to, false));
 									} else if (to != null) {
 										from.unlink(to);
 									}
 								}
+								
+								while (true) {
+									boolean changes = false;
+									for (int i = 0; i < promises.size(); i++) {
+										LinkPromise p = promises.get(i);
+										int angle = p.from.angleTo(p.to);
+										
+										Link next = p.side ? p.to.findLinkForwards(angle, 4) : p.to.findLinkBackwards(angle, 4);
+										if(next == null) continue;
+//										Link prev = p.to.findLinkBackwards(angle, 4);
+//										if(prev == null) continue;
+
+										int rgb1 = next.rgbr;
+
+										p.from.link(p.to, rgb1, rgb1);
+										promises.remove(i);
+										changes = true;
+										break;
+									}
+									System.out.println("Promises: " + promises);
+									if(!changes) {
+										System.err.println("No changes");
+										break;
+									}
+									
+									if(promises.size() <= 0) break;
+								}
+								
 							}
 							break;
 						}
@@ -439,5 +473,9 @@ public class Case {
 				}
 			}
 		}
+	}
+	
+	record LinkPromise(Node from, Node to, boolean side) {
+		
 	}
 }
