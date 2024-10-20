@@ -6,8 +6,10 @@
 /debug
 /h
 /debug
+source
 *.iml
 /bin/
 /zBlocks
 /fragments
 /.oldcases
+/source

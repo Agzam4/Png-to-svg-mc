@@ -21,7 +21,7 @@ public class SvgConverter {
 				if(mc.grid[x][y] == null) continue;
 				Node from = mc.grid[x][y];
 				visited[x][y] = new boolean[from.links()];
-				from.links.sort((l1,l2) -> Double.compare(Math.atan2(l1.y - from.y, l1.x - from.x), Math.atan2(l2.y - from.y, l2.x - from.x)));
+				from.getLinks().sort((l1,l2) -> Double.compare(Math.atan2(l1.target.y - from.y, l1.target.x - from.x), Math.atan2(l2.target.y - from.y, l2.target.x - from.x)));
 			}
 		}
 
@@ -38,8 +38,8 @@ public class SvgConverter {
 					do {
 						path.add(n);
 						visited[n.x][n.y][index] = true;
-						next = n.links.get(index);
-						index = (next.links.indexOf(n)+1)%next.links();
+						next = n.get(index).target;
+						index = (next.indexOf(n)+1)%next.links();
 						n = next;
 					} while (n != node);
 					
@@ -67,8 +67,8 @@ public class SvgConverter {
 						}
 						corners.add(path.get(path.size()-1));
 						
-						int rgb = mc.rgbs[(n.x+1)/2][(n.y+3)/2];
-
+						int rgb = path.get(0).indexOf(path.get(1));//mc.rgbs[(n.x+1)/2][(n.y+3)/2];
+						rgb = path.get(0).get(rgb).rgbr;
 						/*
 						 *  Searching the most frequent color: 
 						 *  under top links
@@ -76,38 +76,42 @@ public class SvgConverter {
 						 *  right of left links
 						 *  left of right links
 						 *  of shape 
-						 *  (FIXME: in theory it can be broken by cases)
+						 *  (FIXED: in theory it can be broken by cases)
 						 */
-						HashMap<Integer, Vec1> counter = new HashMap<Integer, Vec1>();
-						int maxCount = 0;
-						for (var p : path) {
-							int dx = 0, dy = 0;
-							if(p.y != minY && p.y != maxY) {
-								if(p.x == minX) dx = 1;
-								if(p.x == maxX) dx = -1;
-							}
-							if(p.x != minX && p.x != maxX) {
-								if(p.y == minY) dy = 1;
-								if(p.y == maxY) dy = -1;
-							}
-							if(dx != 0 || dy != 0) {
-								int key = mc.rgbs[(p.x)/2+dx][((p.y)/2)+dy];
-								Vec1 c = counter.get(key);
-								if(c == null) {
-									c = new Vec1(0);
-									counter.put(key, c);
-								}
-								c.add(1);
-								maxCount = Math.max(maxCount, c.i);
-							}
-						}
-						for (int key : counter.keySet()) {
-							Vec1 v1 = counter.get(key);
-							if(v1.i == maxCount) {
-								rgb = key;
-								break;
-							}
-						}
+//						HashMap<Integer, Vec1> counter = new HashMap<Integer, Vec1>();
+//						int maxCount = 0;
+//						for (var p : path) {
+//							int dx = 0, dy = 0;
+//							if(p.y != minY && p.y != maxY) {
+//								if(p.x == minX) dx = 1;
+//								if(p.x == maxX) dx = -1;
+//							}
+//							if(p.x != minX && p.x != maxX) {
+//								if(p.y == minY) dy = 1;
+//								if(p.y == maxY) dy = -1;
+//							}
+//							if(dx != 0 || dy != 0) {
+//								try {
+//									int key = ((p.x)/2+dx < 0 || ((p.y)/2)+dy < 0) ? 0 : mc.rgbs[(p.x)/2+dx][((p.y)/2)+dy];
+//									Vec1 c = counter.get(key);
+//									if(c == null) {
+//										c = new Vec1(0);
+//										counter.put(key, c);
+//									}
+//									c.add(1);
+//									maxCount = Math.max(maxCount, c.i);
+//								} catch (Exception e) {
+//									e.printStackTrace();
+//								}
+//							}
+//						}
+//						for (int key : counter.keySet()) {
+//							Vec1 v1 = counter.get(key);
+//							if(v1.i == maxCount) {
+//								rgb = key;
+//								break;
+//							}
+//						}
 						paths.add(new VecPathArea(corners, rgb, (maxX-minX)*(maxY-minY), minX, minY, maxX, maxY));
 					}
 					pathId++;

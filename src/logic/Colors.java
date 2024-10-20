@@ -8,6 +8,8 @@ import java.awt.Color;
  */
 public class Colors {
 
+	public static int transparent = 0;
+
 	/**
 	 * @param rgba - 0xrrggbbaa
 	 * @return hex code of rgba<br>
@@ -98,5 +100,16 @@ public class Colors {
 	 **/
 	public static int alpha(int rgba) {
 		return (rgba) & 0xFF;
+	}
+	
+	public static String toDebugHex(int rgb) {
+		Color color = new Color(rgb);
+		return toHex(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+	}
+	public static Color toDebugColor(int rgba) {
+		return new Color((rgba >> 24) & 0xFF, 
+				 (rgba >> 16) & 0xFF,
+				 (rgba >> 8) & 0xFF, 
+				 (rgba) & 0xFF);
 	}
 }

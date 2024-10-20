@@ -20,19 +20,32 @@ public class Vec4 {
 		return this;
 	}
 
-	public void flipX(int x) {
+	public Vec4 flipX(int x) {
 		x1 = x-x1;
 		x2 = x-x2;
+		return this;
 	}
 	
-	public void flipY(int y) {
+	public Vec4 flipY(int y) {
 		y1 = y-y1;
 		y2 = y-y2;
+		return this;
+	}
+	
+	public Vec4 reverse() {
+		int tmp;
+		tmp = x1;
+		x1 = x2;
+		x2 = tmp;
+		tmp = y1;
+		y1 = y2;
+		y2 = tmp;
+		return this;
 	}
 	
 	@Override
 	public String toString() {
-		return x1 + "" + y1 + " -> " + x2 + " " + y2;
+		return x1 + " " + y1 + " -> " + x2 + " " + y2;
 	}
 
 	public Vec4 copy() {

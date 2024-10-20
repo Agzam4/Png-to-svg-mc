@@ -82,7 +82,7 @@ public class Debug {
 		fillOval(n.x, n.y, 1, 1);
 	}
 
-	public static void fillRect(int x, int y, float w, float h) {
+	public static void fillRect(float x, float y, float w, float h) {
 		if(g == null) return;
 		g.fillRect((int) (x*scl), (int) (y*scl), (int) (w*scl), (int) (h*scl));
 	}
@@ -91,8 +91,8 @@ public class Debug {
 		fillRect(n.x, n.y, 1, 1);
 	}
 
-	public static void line(int x1, int y1, int x2, int y2) {
-		if(g != null) g.drawLine(x1*scl, y1*scl, x2*scl, y2*scl);
+	public static void line(float x1, float y1, float x2, float y2) {
+		if(g != null) g.drawLine((int)(x1*scl), (int)(y1*scl), (int)(x2*scl), (int)(y2*scl));
 	}
 
 	public static void line(Node n1, Node n2) {
@@ -122,7 +122,7 @@ public class Debug {
 		if(i == 3) g.setColor(Color.yellow);
 	}
 
-	public static void drawRect(int x, int y, float w, float h) {
+	public static void drawRect(float x, float y, float w, float h) {
 		if(g == null) return;
 		g.drawRect((int) (x*scl), (int) (y*scl), (int) (w*scl), (int) (h*scl));
 	}
