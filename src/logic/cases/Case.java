@@ -16,6 +16,7 @@ import logic.MulticolorsMarchingSquares;
 import logic.Node;
 import logic.Vec2;
 import main.Debug;
+import main.Log;
 
 public class Case {
 	
@@ -66,6 +67,14 @@ public class Case {
 	
 	static enum Transforms {
 
+		/**
+		 * Affine transforms in lambda style
+		 * Example:
+		 * 0 1
+		 * 1 0
+		 * was:
+		 * 
+		 */
 		FlipX((x,y) -> -x, (x,y) -> y),
 		FlipY((x,y) -> x, (x,y) -> -y),
 		FlipXY((x,y) -> -x, (x,y) -> -y),
@@ -165,11 +174,8 @@ public class Case {
 		Graphics2D g = (Graphics2D) debug.getGraphics();
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		int scale = 30;
-//		System.out.println("Nodses: " + NodeMask.nodes);
 		
 		for (var m : masks) {
-//			m.x -= dx;
-//			m.y -= dy;
 			m.eachChildren(new BiConsumer<NodeMask, Integer>() {
 				public void accept(NodeMask t, Integer d) {
 					for (var l : m.links) {
@@ -183,19 +189,12 @@ public class Case {
 				}
 			});
 		}
-		
-//		ImageIO.write(debug, "png", new File(file.getName() + ".png"));
-		
-		System.out.println("Case '" + name + "' loaded: root is " + root);
-//		int maxKey = 0;
-//		int maxCount = 0;
+		Log.info("Case [green]@[] loaded, root is: [gray]@[]", name, root);
 		int dx = root.x;
 		int dy = root.y;
-		
 		for (NodeMask m : nodes) {
 			m.x -= dx;
 			m.y -= dy;
-//			System.out.println(m);
 		}
 	}
 	
@@ -204,18 +203,13 @@ public class Case {
 		private int x, y;
 		private int depth = -1;
 		private ArrayList<MaskLink> links = new ArrayList<>();
-//		private ArrayList<NodeMask> links = new ArrayList<>();
-//		private ArrayList<MaskTypes> types = new ArrayList<>();
 		boolean before = false;
 		boolean after = false;
-		
-//		static int nodes = 0;
 		
 		private NodeMask(int x, int y) {
 			this.x = x;
 			this.y = y;
 			nodes.add(this);
-//			nodes++;
 		}
 		
 		public MaskTypes type() {
@@ -227,15 +221,9 @@ public class Case {
 
 		public void rawLink(int dx, int dy, MaskTypes type) {
 			links.add(new MaskLink(dx, dy, type));
-//			types.add(type);
 			before = before || type.before;
 			after = after || type.after;
 		}
-
-//		public void addLink(NodeMask link) {
-//			if(link.type != MaskTypes.CREATE.ordinal()) srcLinks++;
-//			links.add(link);
-//		}
 		
 		private void updateDepth() {
 			for (var l : links) {
@@ -268,12 +256,7 @@ public class Case {
 				if(!l.node.before) continue;
 				if(l.node.depth > depth) {
 					if(!l.node.test(m, x + tf.x(l), y + tf.y(l), tf, d+1)) {
-//						g.setColor(Color.magenta);
-//						g.drawLine(x*gscl, y*gscl, (x+tf.x(l))*gscl, (y+tf.y(l))*gscl);
 						return false;
-					} else {
-//						g.setColor(Color.green);
-//						g.drawLine(x*gscl, y*gscl, (x+tf.x(l))*gscl, (y+tf.y(l))*gscl);
 					}
 				}
 			}
@@ -281,11 +264,7 @@ public class Case {
 		}
 
 		public boolean testLinks(MulticolorsMarchingSquares m, int x, int y, Transforms tf, int d) {
-			if(m.hasNode(x, y) != before) {
-//				System.out.println("Wrong node");
-//				g.fillRect(x*gscl - gscl/2 + gx, y*gscl - gscl/2 + gy, 1, 1);
-				return false;
-			}
+			if(m.hasNode(x, y) != before) return false; // Wrong node
 			Node node = m.grid[x][y];
 			boolean[] src = new boolean[9];
 			boolean[] mask = new boolean[9];
@@ -304,30 +283,7 @@ public class Case {
 				src[deltaId(dx, dy)] = true;
 			}
 			
-//			if(d > 0) {
-//				int id = 0;
-//				g.setColor(new Color(0,255,255,50));
-//				for (int gy = 0; gy < 3; gy++) {
-//					for (int gx = 0; gx < 3; gx++) {
-//						if(mask[id]) g.setColor(new Color(0,255,0,50));
-//						else g.setColor(new Color(255,0,0,50));
-//						g.fillRect(x*gscl - gscl/2 + gx + 3, y*gscl - gscl/2 + gy + 3, 1, 1);
-//						id++;
-//					}
-//				}
-//				id = 0;
-//				for (int gy = 0; gy < 3; gy++) {
-//					for (int gx = 0; gx < 3; gx++) {
-//						if(src[id]) g.setColor(new Color(0,0,255,50));
-//						else g.setColor(new Color(255,0,0,50));
-//						g.fillRect(x*gscl - gscl/2 + gx, y*gscl - gscl/2 + gy, 1, 1);
-//						id++;
-//					}
-//				}
-//			}
-			
 			if(beforeLinks == 1) {
-//				return true;
 				for (var l : node.links) {
 					int dx = l.x - node.x;
 					int dy = l.y - node.y;
@@ -336,37 +292,10 @@ public class Case {
 				return false;
 			}
 			
-			
-			
 			for (int i = 0; i < mask.length; i++) {
-				if(src[i] != mask[i]) {
-//					System.out.println("Wrong mask");
-					return false;
-				}
+				if(src[i] != mask[i]) return false;
 			}
 
-//			if(d == 0) {
-//				int id = 0;
-//				g.setColor(new Color(0,255,255,25));
-//				for (int gy = 0; gy < 3; gy++) {
-//					for (int gx = 0; gx < 3; gx++) {
-//						if(mask[id]) g.setColor(new Color(0,255,0,25));
-//						else g.setColor(new Color(255,0,0,25));
-//						g.fillRect(x*gscl - gscl/2 + gx + 3, y*gscl - gscl/2 + gy + 3, 1, 1);
-//						id++;
-//					}
-//				}
-//				id = 0;
-//				for (int gy = 0; gy < 3; gy++) {
-//					for (int gx = 0; gx < 3; gx++) {
-//						if(src[id]) g.setColor(new Color(0,0,255,25));
-//						else g.setColor(new Color(255,0,0,25));
-//						g.fillRect(x*gscl - gscl/2 + gx, y*gscl - gscl/2 + gy, 1, 1);
-//						id++;
-//					}
-//				}
-//			}
-			
 			return true;
 		}
 
@@ -419,18 +348,7 @@ public class Case {
 									from.unlink(to);
 								}
 							}
-//							int nx = x + n.x;
-//							int ny = y + n.y;
-//							if(n.after) {
-//								Node node = mms.node(nx, ny);
-//								for (MaskLink ml : n.links) {
-//									
-//								}
-//							} else {
-//								mms.removeNode(nx, ny);
-//							}
 						}
-//						System.out.println("Case found: " + name);
 						break;
 					}
 				}
