@@ -10,7 +10,7 @@ public class Log {
 	static {
 		for (var c : Colors.values()) {
 			colors.put(c.name, c);
-			System.out.println("added: " + c.toString()  + c.name + "\033[0m");
+//			System.out.println("added: " + c.toString()  + c.name + "\033[0m");
 		}
 	}
 	
@@ -18,10 +18,13 @@ public class Log {
 
 		red(31),
 		green(32),
+		royal(34),
 		yellow(33),
 		magenta(35),
 		lightGreen(92),
 		lightYellow(93),
+		blue(94),
+		cyan(96),
 		reset(0);
 
 		String color, name = name();
