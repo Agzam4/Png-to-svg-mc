@@ -14,6 +14,14 @@ public class Log {
 	public static void info(String text, Object... args) {
 		System.out.println(getCaller() + format(text, args));
 	}
+
+	public static void warn(Object... args) {
+		System.out.println(getCaller() + format("", args));
+	}
+	
+	public static void warn(String text, Object... args) {
+		System.out.println(getCaller() + format(text, args));
+	}
 	
 	private static String getCaller() {
 		try {
@@ -74,4 +82,5 @@ public class Log {
 		
 		return object.toString();
 	}
+
 }
