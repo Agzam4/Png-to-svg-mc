@@ -21,6 +21,7 @@ public class Log {
 		royal(34),
 		yellow(33),
 		magenta(35),
+		gray(90),
 		lightGreen(92),
 		lightYellow(93),
 		blue(94),
@@ -127,8 +128,8 @@ public class Log {
 				String tag = str.substring(begin, i);
 				begin = -1;
 				if(tag.length() == 0) {
+					if(stack.size() > 0) stack.pop();
 					if(stack.size() > 0) {
-						stack.pop();
 						colored.append(stack.peek());
 					} else {
 						colored.append("[]");
