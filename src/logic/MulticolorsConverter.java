@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 
+import main.Log;
 import main.Main;
 import svg.SvgElement;
 
@@ -28,8 +29,11 @@ public class MulticolorsConverter {
 			source = ImageIO.read(file);
 			if(source.getType() != BufferedImage.TYPE_4BYTE_ABGR) {
 				if(!Main.changeType) {
-					System.err.println("[Warning] " + save + " not has 4byte-argb type! (Current encoding: " + source.getType() + "), enable \"changeType\" to rewrite files");
-					System.out.println("Enable this option for current session?\n> Y/Yes - for this file\n> A/All - for all next files\n[!] The files will be rewritten!!!");
+					Log.warn("[blue]@[] not has 4BYTE_ABGR type! (Current encoding: @), enable [blue]changeType[] to rewrite files", save, source.getType());
+					Log.info("Enable this option for current session?");
+					Log.info("[blue]Y/Yes[] - for this file");
+					Log.info("[blue]A/All[] - for all next files");
+					Log.info("[red]The files will be rewritten[]");
 					String c = Main.scanner.nextLine();
 					if(c.equalsIgnoreCase("A") || c.equalsIgnoreCase("All")) {
 						Main.changeType = true;
@@ -42,13 +46,12 @@ public class MulticolorsConverter {
 				g.drawImage(source, 0,0, null);
 				g.dispose();
 				ImageIO.write(otherType, "png", file);
-				System.out.println("[!] File " + save + " was rewritten (type changed to 4BYTE_ABGR)");
+				Log.info("[red]File [blue]@[] was rewritten (type changed to 4BYTE_ABGR)[]", save);
 			}
 			
 			
 		} catch (IOException e) {
-			System.err.println(file.getName() + " - err to read file");
-			e.printStackTrace();
+			Log.err("@ - err to read file", file.getName());
 			return;
 		}
 		
@@ -131,7 +134,7 @@ public class MulticolorsConverter {
 		}
 
 		if(colors.entrySet().size() > 150) {
-			System.err.println("Too many colors, skipping (" + colors.entrySet().size() + "/150)");
+			Log.warn("Too many colors, skipping (@/150)", colors.entrySet().size());
 			return;
 		}
 
@@ -213,6 +216,6 @@ public class MulticolorsConverter {
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-		System.out.println(save + " " + w + "x" + h + " | " + bs.length + "bytes " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) + "ms");
+		Log.info("[green]@[] @x@ @ bytes [green]@ms[]", save, w,h, bs.length, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
 	}
 }
