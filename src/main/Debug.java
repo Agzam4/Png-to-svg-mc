@@ -101,6 +101,7 @@ public class Debug {
 
 	static int imageId;
 	public static void write(String path) {
+		if(g == null) return;
 		g.dispose();
 		try {
 			if(path.indexOf('@') != -1) {
