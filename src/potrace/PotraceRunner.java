@@ -6,6 +6,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
 import javax.imageio.ImageIO;
@@ -15,14 +18,28 @@ import main.Log;
 import svg.SvgElement;
 
 public class PotraceRunner {
-
+	
 	public static final PotraceRunner instance = new PotraceRunner(new File("potrace"));
-//	private ExecutorService executor = Executors.newFixedThreadPool(1);
-	 
+	
+	private HashMap<String, String> options = new HashMap<String, String>();
+	
 	public final File root;
+	
+	private int scale = 1;
 	
 	public PotraceRunner(File root) {
 		this.root = root;
+		reconfig();
+	}
+
+	public PotraceRunner scale(int scale) {
+		if(scale < 1) scale = 1;
+		this.scale = scale;
+		return this;
+	}
+	
+	public int unit() {
+		return scale;
 	}
 	
 	public SvgElement svg(BufferedImage img) {
@@ -31,7 +48,7 @@ public class PotraceRunner {
 				.attribute("version", "2.0")
 				.attribute("xmlns", "http://www.w3.org/2000/svg")
 				.attribute("xmlns:xlink", "http://www.w3.org/1999/xlink")
-				.attribute("viewBox", "0 0 @ @", img.getWidth()*5, img.getHeight()*5);
+				.attribute("viewBox", "0 0 @ @", img.getWidth()*scale, img.getHeight()*scale);
 		
 		HashSet<Integer> colors = new HashSet<>();
 		for (int sy = 0; sy < img.getHeight(); sy++) {
@@ -71,7 +88,7 @@ public class PotraceRunner {
 	
 	public SvgElement path(String name) {
 		try {
-			var output = run(name);
+			var output = execute(name);
 			String file = Files.readString(Paths.get(output));
 			int index = file.indexOf("d=\"")+3;
 			SvgElement path = new SvgElement("path");
@@ -83,13 +100,16 @@ public class PotraceRunner {
 		return null;
 	}
 	
-	public String run(String name) throws IOException {
+	public String execute(String name) throws IOException {
 		String output = name + ".svg";
 		File exe = new File(root.getAbsoluteFile() + "/potrace.exe");
 		
-		ProcessBuilder builder = new ProcessBuilder(exe.getAbsolutePath(), "-s", "--flat", "-u", "5", name + ".bmp").directory(root);
+		optionsCache[0] = exe.getAbsolutePath();
+		optionsCache[optionsCache.length-1] = name + ".bmp";
+		
+		ProcessBuilder builder = new ProcessBuilder(optionsCache).directory(root);
 		Process process = builder.start();
-		Log.info("Running [blue]potrace[] PID: [blue]@[]", process.pid());
+		Log.info("Running [blue]potrace[] PID: [blue]@[] Args: [blue]@[]", process.pid(), Arrays.toString(optionsCache));
 		
 		new Thread(() -> {
 			var out = new Scanner(process.getInputStream());
@@ -108,10 +128,42 @@ public class PotraceRunner {
 		}, "error-stream").run();
 		
 		return root.getAbsolutePath() + "/" + output;
-		
-		
 	}
 	
+	
+	private String[] optionsCache = {"", ""};
+
+	public void reconfig() {
+		
+		ArrayList<String> opts = new ArrayList<String>();
+		opts.add("-s"); // SVG format output
+		opts.add("--flat"); // single path output
+		
+		opts.add("-u"); 
+		opts.add(Integer.toString(scale));
+		
+		options.forEach((k,v) -> {
+			opts.add(k);
+			if(v != null) opts.add(v);
+		});
+		
+		if(optionsCache.length != opts.size()+2) optionsCache = new String[opts.size()+2];
+		for (int i = 0; i < opts.size(); i++) {
+			optionsCache[i+1] = opts.get(i);
+		}
+	}
+	
+	public PotraceRunner config(String type, String args) {
+		options.put(type, args);
+		reconfig();
+		return this;
+	}
+
+	public PotraceRunner clearConfig(String type) {
+		options.remove(type);
+		reconfig();
+		return this;
+	}
 	
 	
 }
