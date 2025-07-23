@@ -46,7 +46,7 @@ public class PotraceRunner {
 					for (int x = 0; x < img.getWidth(); x++) {
 						int rgb = img.getRGB(x, y);
 						if(rgb == targetRgb) continue;
-						gray.setRGB(x, y, Color.white.getRGB());
+						gray.setRGB(x, gray.getHeight()-y-1, Color.white.getRGB());
 					}
 				}
 				
