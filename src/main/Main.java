@@ -24,7 +24,7 @@ public class Main {
 	public static File output = new File("svg"); // output files directory
 	public static File source = new File("source"); // source files directory
 	public static Scanner scanner = new Scanner(System.in);
-	
+
 	public static void main(String[] args) throws IOException {
 		int threads = Runtime.getRuntime().availableProcessors() - freeProcessors;
 		if(threads < 1) threads = 1;
