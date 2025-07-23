@@ -14,6 +14,7 @@ import java.util.Scanner;
 import javax.imageio.ImageIO;
 
 import logic.Colors;
+import logic.Images;
 import main.Log;
 import svg.SvgElement;
 
@@ -51,9 +52,12 @@ public class PotraceRunner {
 				.attribute("viewBox", "0 0 @ @", img.getWidth()*scale, img.getHeight()*scale);
 		
 		HashSet<Integer> colors = new HashSet<>();
+		int[][] rgbs = Images.rgbs(img);
+		
 		for (int sy = 0; sy < img.getHeight(); sy++) {
 			for (int sx = 0; sx < img.getWidth(); sx++) {
-				int targetRgb = img.getRGB(sx, sy);
+				int targetRgb = rgbs[sx][sy];
+				if(Colors.alpha(targetRgb) == 0) continue;
 				if(colors.contains(targetRgb)) continue;
 				colors.add(targetRgb);
 				
@@ -61,7 +65,7 @@ public class PotraceRunner {
 				
 				for (int y = 0; y < img.getHeight(); y++) {
 					for (int x = 0; x < img.getWidth(); x++) {
-						int rgb = img.getRGB(x, y);
+						int rgb = rgbs[x][y];
 						if(rgb == targetRgb) continue;
 						gray.setRGB(x, gray.getHeight()-y-1, Color.white.getRGB());
 					}
@@ -69,7 +73,6 @@ public class PotraceRunner {
 				
 				String name = "tmp";// + colors.size();
 				try {
-					ImageIO.write(gray, "png", new File(root.getAbsolutePath() + "/" + name + ".png"));
 					ImageIO.write(gray, "bmp", new File(root.getAbsolutePath() + "/" + name + ".bmp"));
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -79,7 +82,7 @@ public class PotraceRunner {
 				var path = path(name);
 				var color = new Color(targetRgb);
 				if(color.getAlpha() == 0) continue;
-				path.attribute("fill", Colors.toHex(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()));
+				path.attribute("fill", Colors.toHex(targetRgb));
 				svg.add(path);
 			}
 		}
@@ -109,7 +112,7 @@ public class PotraceRunner {
 		
 		ProcessBuilder builder = new ProcessBuilder(optionsCache).directory(root);
 		Process process = builder.start();
-		Log.info("Running [blue]potrace[] PID: [blue]@[] Args: [blue]@[]", process.pid(), Arrays.toString(optionsCache));
+//		Log.info("Running [blue]potrace[] PID: [blue]@[] Args: [blue]@[]", process.pid(), Arrays.toString(optionsCache));
 		
 		new Thread(() -> {
 			var out = new Scanner(process.getInputStream());

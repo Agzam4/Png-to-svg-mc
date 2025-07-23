@@ -38,27 +38,7 @@ public class Converter {
 
 		Integer[][] colorsMap = new Integer[w*2+2][h*2+2];
 		
-		Raster raster = source.getRaster();
-		
-		int[][] rgbs = new int[w][h];
-
-		byte[] buffer = new byte[4];
-    	for (int y = 0; y < h; y++) {
-			for (int x = 0; x < w; x++) {
-	    		raster.getDataElements(x, y, 1, 1, buffer);
-	    		if(buffer[3] == 0) {
-	    			buffer[0] = 0;
-	    			buffer[1] = 0;
-	    			buffer[2] = 0;
-	    			buffer[3] = 0;
-	    		}
-	    		rgbs[x][y] = 
-	    				(buffer[0] & 0xFF) << 24 |
-	    				(buffer[1] & 0xFF) << 16 |
-	    				(buffer[2] & 0xFF) << 8 |
-	    				(buffer[3] & 0xFF);
-			}
-    	}
+		int[][] rgbs = Images.rgbs(source);
  		
 		for (int y = 0; y < h; y++) {
 			for (int x = 0; x < w; x++) {
